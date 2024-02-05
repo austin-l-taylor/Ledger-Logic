@@ -1,0 +1,16 @@
+{% block content %}
+
+<h2>Register</h2>
+
+<form mehtod="POST" action="{% url 'register' %}">
+    {% csrf_token %}
+
+    {% if form.errors %}
+        <p>Either your username or password didn't follow the guidelines. Please try again.</p>
+    {% endif %}
+
+    {{ form.as_p }}
+
+<input type="submit" value="Register" class="btn btn-primary">
+</form>
+{% endblock %}
