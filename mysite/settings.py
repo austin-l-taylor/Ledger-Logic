@@ -40,6 +40,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "mysite.urls"
 
+AUTH_USER_MODEL = 'authenticate.CustomUser'
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -58,7 +60,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-
+"""
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -68,7 +70,20 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+"""
 
+import dj_database_url
+# Use dj-database-url in production (Heroku)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dfv1f147c41lrf',
+        'USER': 'riyiarlalllgfv',
+        'PASSWORD': '6d05420295f80f56f44ea67fa3bf650bd9ccd571b5640c5438614f64a54c976d',
+        'HOST': 'ec2-52-54-200-216.compute-1.amazonaws.com', 
+        'PORT': '5432',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
