@@ -73,17 +73,11 @@ DATABASES = {
 """
 
 import dj_database_url
-# Use dj-database-url in production (Heroku)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dfv1f147c41lrf',
-        'USER': 'riyiarlalllgfv',
-        'PASSWORD': '6d05420295f80f56f44ea67fa3bf650bd9ccd571b5640c5438614f64a54c976d',
-        'HOST': 'ec2-52-54-200-216.compute-1.amazonaws.com', 
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(default='postgres://bycsyiexawvxbg:d6ef989daf27ea5beec9c851e20d56b892760b6f3b8f5be7c568d84563c92578@ec2-34-193-110-25.compute-1.amazonaws.com:5432/d3aqhgtld2m9hd', conn_max_age=600, ssl_require=True)
 }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
