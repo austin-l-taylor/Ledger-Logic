@@ -10,6 +10,8 @@ class CustomUser(AbstractUser):
     answer1 = models.CharField(max_length=255, null=True, blank=True)
     question2 = models.CharField(max_length=255, null=True, blank=True)
     answer2 = models.CharField(max_length=255, null=True, blank=True)
+    is_suspended = models.BooleanField(default=False)
+    failed_login_attempts = models.IntegerField(default=0)
 
 class PasswordHistory(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
