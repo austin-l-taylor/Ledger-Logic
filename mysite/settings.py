@@ -40,6 +40,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "mysite.urls"
 
+AUTH_USER_MODEL = 'authenticate.CustomUser'
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -58,7 +60,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "mysite.wsgi.application"
 
-
+"""
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -68,6 +70,13 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+"""
+
+import dj_database_url
+DATABASES = {
+    'default': dj_database_url.config(default='postgres://bycsyiexawvxbg:d6ef989daf27ea5beec9c851e20d56b892760b6f3b8f5be7c568d84563c92578@ec2-34-193-110-25.compute-1.amazonaws.com:5432/d3aqhgtld2m9hd', conn_max_age=600, ssl_require=True)
+}
+
 
 
 # Password validation
