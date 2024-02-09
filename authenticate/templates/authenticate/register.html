@@ -4,7 +4,7 @@
     <div class="d-flex justify-content-center align-items-center vh-500">
         <div class="border p-5 rounded shadow" style="width: 500px; height: 850px;">
 
-        <h2>Register</h2>
+        <h2 class="text-center pb-3">Register</h2>
 
             <form method="POST" action="{% url 'register' %}">
                 {% csrf_token %}
@@ -12,7 +12,30 @@
                 {% if form.errors %}
                     <p>Either your username or password didn't follow the guidelines. Please try again.</p>
                 {% endif %}
-
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" placeholder="Enter Username" name="username">
+                        <p style="font-size: 12px;">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</p>
+                    <label for="firstname" class="form-label">First Name</label>
+                    <input type="text" class="form-control" placeholder="Enter First Name" name="firstname">
+                    <label for="lastname" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" placeholder="Enter Last Name" name="lastname">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="text" class="form-control" placeholder="Enter Email" name="email">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="text" class="form-control" placeholder="Enter Password" name="password">
+                            <li style="font-size: 12px;">Your password can’t be too similar to your other personal information.</li>
+                            <li style="font-size: 12px;">Your password must contain at least 8 characters.</li>
+                            <li style="font-size: 12px;">Your password can’t be a commonly used password.</li>
+                            <li style="font-size: 12px;">Your password can’t be entirely numeric.</li>
+                        </ul>
+                    <label for="passwordConfirmation" class="form-label">Password Confirmation</label>
+                    <input type="text" class="form-control" placeholder="Renter Password" name="passwordConfirmation">
+                    <p style="font-size: 12px;">Enter the same password as before, for verification.</p>
+                    <label for="dbo" class="form-label">Dbo</label>
+                    <input type="text" class="form-control" placeholder="Enter Dbo" name="dbo">
+                    
+                </div>
                 {{ form.as_p }}
 
                 <input type="submit" value="Register" class="btn btn-primary">
