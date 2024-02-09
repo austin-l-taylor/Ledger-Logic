@@ -2,7 +2,7 @@
 
 <h2>Register</h2>
 
-<form mehtod="POST" action="{% url 'register' %}">
+<form method="POST" action="{% url 'register' %}">
     {% csrf_token %}
 
     {% if form.errors %}
@@ -11,6 +11,7 @@
 
     {{ form.as_p }}
 
-<input type="submit" value="Register" class="btn btn-primary">
+    <input type="submit" value="Register" class="btn btn-primary">
 </form>
+
 {% endblock %}
