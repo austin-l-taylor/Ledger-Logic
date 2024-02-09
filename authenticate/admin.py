@@ -9,7 +9,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'profile_picture', 'dob')}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_suspended', 'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined', 'password_expiry')}),
         (_('Security Questions'), {'fields': ('question1', 'answer1', 'question2', 'answer2')}),
     )
@@ -21,7 +21,8 @@ class CustomUserAdmin(UserAdmin):
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'email', 'profile_picture', 'dob')}),
         (_('Security Questions'), {'fields': ('question1', 'answer1', 'question2', 'answer2')}),
     )
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'dob', 'status')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_suspended', 'dob', 'status') 
     search_fields = ('username', 'first_name', 'last_name', 'email')
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
