@@ -31,26 +31,15 @@ def register_user(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get("username")
-            password = form.cleaned_data.get("password1")
-            # input admin use authentication here
-            user = authenticate(username=username, password=password)
-            login(request, user)
+            user = form.save()
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, "You have successfully registered.")
             return redirect("home")
     else:
         form = SignUpForm()
+    
     context = {"form": form}
     return render(request, "authenticate/register.html", context)
-
-
-def forgot_password(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-
-    return render(request, "authenticate/forgot_password.html", {})
 
 
 def home(request):
