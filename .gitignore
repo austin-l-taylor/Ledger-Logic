@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyc
 
 # C extensions
 *.so
@@ -118,5 +117,4 @@ env/
 .Trashes
 ehthumbs.db
 Thumbs.db
-*.pyc
 *.pyc
