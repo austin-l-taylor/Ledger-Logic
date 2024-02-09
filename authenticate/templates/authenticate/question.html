@@ -1,0 +1,19 @@
+{% extends 'authenticate/base.html' %}
+
+{% block content %}
+
+<h2>Answer Security Questions</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {% if form.errors %}
+        <p>This is where you will enter the questions</p>
+    {% endif %}
+
+    {{ form.as_p }}
+
+    <input type="submit" value="Submit Answers" class="btn btn-primary">
+</form>
+
+{% endblock %}
