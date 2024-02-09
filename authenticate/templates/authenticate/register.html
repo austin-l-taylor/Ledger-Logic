@@ -1,23 +1,23 @@
 {% extends 'authenticate/base.html' %}
 <body>
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-500">
-    <div class="border p-5 rounded shadow" style="width: 500px; height: 850px;">
+    <div class="d-flex justify-content-center align-items-center vh-500">
+        <div class="border p-5 rounded shadow" style="width: 500px; height: 850px;">
 
-<h2>Register</h2>
+        <h2>Register</h2>
 
-<form method="POST" action="{% url 'register' %}">
-    {% csrf_token %}
+            <form method="POST" action="{% url 'register' %}">
+                {% csrf_token %}
 
-    {% if form.errors %}
-        <p>Either your username or password didn't follow the guidelines. Please try again.</p>
-    {% endif %}
+                {% if form.errors %}
+                    <p>Either your username or password didn't follow the guidelines. Please try again.</p>
+                {% endif %}
 
-    {{ form.as_p }}
+                {{ form.as_p }}
 
-    <input type="submit" value="Register" class="btn btn-primary">
-</form>
-</div>
-</div>
+                <input type="submit" value="Register" class="btn btn-primary">
+            </form>
+        </div>
+    </div>
 {% endblock %}
 </body>
