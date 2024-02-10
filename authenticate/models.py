@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 class CustomUser(AbstractUser):
     dob = models.DateField(null=True, blank=True)
@@ -13,6 +14,20 @@ class CustomUser(AbstractUser):
     answer2 = models.CharField(max_length=255, null=True, blank=True)
     is_suspended = models.BooleanField(default=False)
     failed_login_attempts = models.IntegerField(default=0)
+    suspension_start_date = models.DateField(null=True, blank=True)
+    suspension_end_date = models.DateField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.is_suspended:
+            self.suspension_start_date = None
+            self.suspension_end_date = None
+        else:
+            if self.suspension_start_date and self.suspension_end_date:
+                today = timezone.now().date()
+                self.is_suspended = self.suspension_start_date <= today <= self.suspension_end_date
+            else:
+                self.is_suspended = False
+        super().save(*args, **kwargs)
 
 class PasswordHistory(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

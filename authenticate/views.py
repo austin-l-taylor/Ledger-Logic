@@ -4,6 +4,7 @@ from django.contrib import messages
 from authenticate.models import CustomUser
 from .forms import SignUpForm, SecurityQuestionForm, ForgotPasswordForm
 from .models import CustomUser
+from django.utils import timezone
 
 
 def login_user(request):
@@ -11,36 +12,41 @@ def login_user(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            if user.is_suspended:
-                messages.error(request, "Your account has been suspended.")
-                return redirect("login")
-            else:
-                login(request, user)
-                user.failed_login_attempts = 0
-                user.save()
-                messages.success(request, "You have successfully logged in.")
-                return redirect("home")
-        else:
-            try:
-                user = CustomUser.objects.get(username=username)
-                if user.failed_login_attempts >= 4:
+        try:
+            user = CustomUser.objects.get(username=username)
+            if user.suspension_start_date and user.suspension_end_date:
+                if user.suspension_start_date <= timezone.now().date() <= user.suspension_end_date:
                     user.is_suspended = True
+                elif timezone.now().date() > user.suspension_end_date: 
+                    user.is_suspended = False
+                    user.suspension_start_date = None 
+                    user.suspension_end_date = None
+                user.save()
+
+            if not user.is_suspended:
+                user = authenticate(request, username=username, password=password)
+                if user:
+                    login(request, user)
                     user.failed_login_attempts = 0
                     user.save()
-                    messages.error(
-                        request,
-                        "You've attempted too many times. Your account has been suspended. An admin will need to unlock it.",
-                    )
+                    messages.success(request, "You have successfully logged in!")
+                    return redirect("home")
                 else:
                     user.failed_login_attempts += 1
-                    user.save()
-                    messages.error(request, "Invalid username or password.")
-            except CustomUser.DoesNotExist:
-                messages.error(request, "Invalid username or password.")
+                    if(user.failed_login_attempts >= 5):
+                        user.is_suspended = True
+                        user.failed_login_attempts = 0
+                        user.save()
+                        messages.error(request, "You've attempted too many times. Your account has been suspended.")
+                    else:
+                        user.save()
+                        messages.error(request, "Invalid username or password.")
+            else:
+                messages.error(request, "Your account has been suspended. Reach out to an admin to unlock it.")
+        except CustomUser.DoesNotExist:
+            messages.error(request, "Invalid username or password.")
 
-            return redirect("login")
+        return redirect("login")
     else:
         return render(request, "authenticate/login.html", {})
 
