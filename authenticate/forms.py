@@ -56,8 +56,6 @@ class ForgotPasswordForm(forms.Form):
 
 
 class SecurityQuestionForm(forms.Form):
-    username = forms.CharField(required=True)
-    email = forms.EmailField(required=True)
     answer1 = forms.CharField(required=True)
     answer2 = forms.CharField(required=True)
 

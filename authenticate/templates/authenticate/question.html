@@ -6,6 +6,15 @@
             <h2 class="text-center pb-3">Answer Security Questions</h2>
             <form method="POST">
                 {% csrf_token %}
+                {% if form.errors %}
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
                 <div class="mb-3 text-center">
                     <label class="form-label">What was the name of your best childhood friend growing up?</label>
                     <div class="mt-2"><input type="text" name="answer1" required></div>

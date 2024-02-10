@@ -88,10 +88,10 @@ def question(request):
     if request.method == "POST":
         form = SecurityQuestionForm(request.POST)
         if form.is_valid():
-            answer1 = form.cleaned_data.get("answer1")
-            answer2 = form.cleaned_data.get("answer2")
+            user_answer1 = request.POST.get("answer1")
+            user_answer2 = request.POST.get("answer2")
             user = CustomUser.objects.get(username=username)
-            if user.answer1 == answer1 and user.answer2 == answer2:
+            if user.answer1 == user_answer1 and user.answer2 == user_answer2:
                 return redirect("reset_password")
             else:
                 messages.error(request, "Your answers do not match please try again.")
@@ -106,7 +106,7 @@ def reset_password(request):
         password2 = request.POST.get("password2")
         if password1 == password2:
             # Get the username from the session and get the corresponding user
-            username = request.session.get("username_for_password_reset")
+            username = request.session.get("username")
             if username is None:
                 messages.error(request, "No user found.")
                 return redirect("question")
