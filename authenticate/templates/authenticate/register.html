@@ -2,7 +2,7 @@
 <body>
 {% block content %}
     <div class="d-flex justify-content-center align-items-center vh-500">
-        <div class="border p-5 rounded shadow" style="width: 500px; height: 850px;">
+        <div class="border p-5 rounded shadow" style="width: 500px; height: 1100px;">
 
         <h2 class="text-center pb-3">Register</h2>
 
@@ -34,11 +34,46 @@
                     <p style="font-size: 12px;">Enter the same password as before, for verification.</p>
                     <label for="dbo" class="form-label">Dbo</label>
                     <input type="text" class="form-control" placeholder="Enter Dbo" name="dbo">
-                    
+                    <label for="question1" class="form-label">Question 1:</label>
+                <select id="question1" class="form-control" name="question1">
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                </select>
+                <label for="answer1" class="form-label">Answer 1:</label>
+                    <input type="text" class="form-control" placeholder="Enter Answer 1" name="answer1">
+                <label for="question2" class="form-label">Question 2:</label>
+            <select id="question2" class="form-control" name="question2">
+                <option value="option1">Option 1</option>
+                <option value="option2">Option 2</option>
+                <option value="option3">Option 3</option>
+            </select>
+                <label for="answer2" class="form-label">Answer 2:</label>
+                    <input type="text" class="form-control" placeholder="Enter Answer 2" name="answer2">
                 </div>
-                {{ form.as_p }}
+            <!-- {{ form.as_p }}
 
-                <input type="submit" value="Register" class="btn btn-primary">
+                <input type="submit" value="Register" class="btn btn-primary">-->
+                <head>
+                    <title class="form-label">Register Button Example</title>
+                    <style>
+                        .register-button {
+                            background-color: blue;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        }
+                
+                        .register-button:hover {
+                            background-color: darkblue;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <button class="register-button">Register</button>
+                </body>
             </form>
         </div>
     </div>
