@@ -1,9 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from authenticate.models import CustomUser
-from .forms import SignUpForm, SecurityQuestionForm, ForgotPasswordForm
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.contrib.admin.views.decorators import user_passes_test
+from .forms import SignUpForm, SecurityQuestionForm, ForgotPasswordForm, EmailForm
 from .models import CustomUser
+from django.conf import settings
 from django.utils import timezone
 
 
@@ -128,3 +132,27 @@ def reset_password(request):
 
 def home(request):
     return render(request, "main_page/home.html", {})
+
+def is_staff_user(user):
+    return user.is_staff
+
+@user_passes_test(is_staff_user)
+def send_email_view(request, user_id):
+    user = get_object_or_404(CustomUser, pk=user_id)
+    if request.method == 'POST':
+        form = EmailForm(request.POST)
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False
+            )
+            messages.success(request, "Email sent!")
+            return redirect('admin:index')
+    else:
+        form = EmailForm()
+    return render(request, 'admin_custom/send_email.html', {'form': form, 'user': user})
