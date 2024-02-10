@@ -123,3 +123,25 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+#ledgerlogic email information
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ledgerlogic.ksu@gmail.com'
+EMAIL_HOST_PASSWORD = '54G9%i{~|PZT'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+#personal test email information
+"""
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ijonathanochoa@gmail.com'
+EMAIL_HOST_PASSWORD = 'xbiq wkbd zfcp zkej'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+"""
