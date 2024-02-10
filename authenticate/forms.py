@@ -64,3 +64,8 @@ class SecurityQuestionForm(forms.Form):
         answer2 = self.cleaned_data.get("answer2")
 
         return answer1 == user.answer1 and answer2 == user.answer2
+
+
+class EmailForm(forms.Form):
+    subject = forms.CharField(max_length=100)
+    message = forms.CharField(widget=forms.Textarea)

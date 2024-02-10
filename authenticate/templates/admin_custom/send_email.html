@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+  <h1>Send Email</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Send Email">
+    <a href="{% url 'admin:index' %}" class="button">Back to Dashboard</a>
+  </form>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import send_email_view
 
 urlpatterns = [
     path("", views.login_user, name="login"),
@@ -9,4 +10,5 @@ urlpatterns = [
     path("question/", views.question, name="question"),
     path("reset_password/", views.reset_password, name="reset_password"),
     path("home/", views.home, name="home"),
+    path('send-email/<int:user_id>/', send_email_view, name='send_email'),
 ]
