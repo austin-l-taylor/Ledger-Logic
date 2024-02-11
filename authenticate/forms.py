@@ -5,14 +5,19 @@ from datetime import datetime, timedelta
 
 User = get_user_model()
 
+
 class SignUpForm(UserCreationForm):
     dob = forms.DateField(required=True)
     email = forms.EmailField(required=True)
-    question1 = forms.ChoiceField(choices=[('q1', 'Question 1'), ('q2', 'Question 2'), ('q3', 'Question 3')])
+    question1 = forms.ChoiceField(
+        choices=[("q1", "Question 1"), ("q2", "Question 2"), ("q3", "Question 3")]
+    )
     answer1 = forms.CharField(required=True)
-    question2 = forms.ChoiceField(choices=[('q1', 'Question 1'), ('q2', 'Question 2'), ('q3', 'Question 3')])
+    question2 = forms.ChoiceField(
+        choices=[("q1", "Question 1"), ("q2", "Question 2"), ("q3", "Question 3")]
+    )
     answer2 = forms.CharField(required=True)
-    
+
     class Meta:
         model = User
         fields = (
@@ -39,7 +44,28 @@ class SignUpForm(UserCreationForm):
         user.answer2 = self.cleaned_data["answer2"]
         user.date_joined = datetime.now()
         user.password_expiry = datetime.now() + timedelta(days=180)
-        
+
         if commit:
             user.save()
         return user
+
+
+class ForgotPasswordForm(forms.Form):
+    username = forms.CharField(required=True)
+    email = forms.EmailField(required=True)
+
+
+class SecurityQuestionForm(forms.Form):
+    answer1 = forms.CharField(required=True)
+    answer2 = forms.CharField(required=True)
+
+    def check_answers(self, user):
+        answer1 = self.cleaned_data.get("answer1")
+        answer2 = self.cleaned_data.get("answer2")
+
+        return answer1 == user.answer1 and answer2 == user.answer2
+
+
+class EmailForm(forms.Form):
+    subject = forms.CharField(max_length=100)
+    message = forms.CharField(widget=forms.Textarea)
