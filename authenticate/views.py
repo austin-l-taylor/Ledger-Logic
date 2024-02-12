@@ -80,14 +80,16 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
         mail_subject = "You are able to login now!"
+        mail_content = "Your account is now activated. You can login now. Thanks!"
         from_email = "ledgerlogic.ksu@gmail.com"
         to_email = user.email
-        message = EmailMultiAlternatives(mail_subject, from_email, [to_email])
+        message = EmailMultiAlternatives(mail_subject, mail_content, from_email, [to_email])
+        message.send()
         messages.success(request, "User account is now active.")
-        return redirect("homepage")
+        return redirect("authenticate/home.html")
     else:
-        message.error(request, "Activation link is invalid!")
-    return redirect("homepage")
+        messages.error(request, "Activation link is invalid!")
+    return redirect("authenticate/home.html")
 
 def activationEmail(request, user, username):
     mail_subject = "A new user has registered to your site."
