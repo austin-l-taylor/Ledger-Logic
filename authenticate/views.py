@@ -9,6 +9,15 @@ from .forms import SignUpForm, SecurityQuestionForm, ForgotPasswordForm, EmailFo
 from .models import CustomUser
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.template.loader import get_template
+from django.template import Context
+from django.utils.http import  urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMultiAlternatives
+from .tokens import account_activation_token
 
 
 def login_user(request):
@@ -60,14 +69,50 @@ def logout_user(request):
     messages.success(request, "You have successfully logged out.")
     return redirect("login")
 
+def activate(request, uidb64, token):
+    User= get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except:
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        mail_subject = "You are able to login now!"
+        from_email = "ledgerlogic.ksu@gmail.com"
+        to_email = user.email
+        message = EmailMultiAlternatives(mail_subject, from_email, [to_email])
+        messages.success(request, "User account is now active.")
+        return redirect("homepage")
+    else:
+        message.error(request, "Activation link is invalid!")
+    return redirect("homepage")
+
+def activationEmail(request, user, username):
+    mail_subject = "A new user has registered to your site."
+    message = render_to_string("activationAccount.html", {
+        "user": username,
+        'useremail': user.email,
+        'domain': get_current_site(request).domain,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': account_activation_token.make_token(user),
+        "protcol":'https' if request.is_secure() else 'http'
+    })
+    email = EmailMultiAlternatives(mail_subject, message, to=["myin1@students.kennesaw.edu"])
+    email.send()
+
 
 def register_user(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active=False
+            user.save()
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             messages.success(request, "You have successfully registered.")
+            activationEmail(request, user, form.cleaned_data.get('username'))
             return redirect("home")
     else:
         form = SignUpForm()

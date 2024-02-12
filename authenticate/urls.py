@@ -11,4 +11,5 @@ urlpatterns = [
     path("reset_password/", views.reset_password, name="reset_password"),
     path("home/", views.home, name="home"),
     path('send-email/<int:user_id>/', send_email_view, name='send_email'),
+    path('activate/<uidb64>/<token>', views.activate, name= 'activate'),
 ]
