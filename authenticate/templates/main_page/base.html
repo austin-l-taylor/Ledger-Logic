@@ -12,8 +12,8 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             
             <div class="container-fluid">
-                <img src="/Logo.png" alt="logo" style="float:right;width:42px;height:42px;">
-              <a class="navbar-brand" href="{% url 'home' %}">LedgerLogic {{user.username}}</a> 
+                <img src="https://i.imgur.com/2TWSSkP.jpg" alt="logo" style="float:right;width:42px;height:42px;">
+              <a class="navbar-brand" href="{% url 'home' %}">LedgerLogic</a> 
               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
               </button>
@@ -24,12 +24,12 @@
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                            <img src="/default.jpeg" alt="logo" style="float:right;width:42px;height: 55px;">
+                            <img src="https://i.imgur.com/phoWM6F.jpg" alt="logo" style="float:right;width:55px;height: 55px;">
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">Login</a>
-                        </li>
+                        </li>   
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'register' %}">Register</a>
                         </li>
