@@ -24,6 +24,7 @@
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            <img src="/default.jpeg" alt="logo" style="float:right;width:42px;height: 55px;">
                         </li>
                     {% else %}
                         <li class="nav-item">
