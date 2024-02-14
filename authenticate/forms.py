@@ -9,12 +9,16 @@ User = get_user_model()
 class SignUpForm(UserCreationForm):
     dob = forms.DateField(required=True)
     email = forms.EmailField(required=True)
-    question1 = forms.ChoiceField(
-        choices=[("q1", "Question 1"), ("q2", "Question 2"), ("q3", "Question 3")]
+    question1 = forms.CharField(
+        initial="What was the name of your first pet?",
+        disabled=True,
+        widget=forms.TextInput(attrs={"size": "40"}),
     )
     answer1 = forms.CharField(required=True)
-    question2 = forms.ChoiceField(
-        choices=[("q1", "Question 1"), ("q2", "Question 2"), ("q3", "Question 3")]
+    question2 = forms.CharField(
+        initial="What city were you born in?",
+        disabled=True,
+        widget=forms.TextInput(attrs={"size": "40"}),
     )
     answer2 = forms.CharField(required=True)
 
@@ -33,6 +37,19 @@ class SignUpForm(UserCreationForm):
             "question2",
             "answer2",
         )
+        labels = {
+            "username": "Your username",
+            "first_name": "Your first name",
+            "last_name": "Your last name",
+            "email": "Your email",
+            "password1": "Your password",
+            "password2": "Confirm your password",
+            "dob": "Your date of birth",
+            "question1": "Security question 1",
+            "answer1": "Answer to security question 1",
+            "question2": "Security question 2",
+            "answer2": "Answer to security question 2",
+        }
 
     def save(self, commit=True):
         user = super().save(commit=False)
