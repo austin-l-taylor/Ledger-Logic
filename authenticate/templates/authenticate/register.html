@@ -1,33 +1,60 @@
 {% extends 'authenticate/base.html' %}
+<!-- Extends the base HTML template -->
 
 {% load static %}
+<!-- Load static files like CSS and JavaScript -->
 
 {% block content %}
+    <!-- Start of content block -->
     <div class="d-flex justify-content-center align-items-center vh-100">
+        <!-- Container for centering content vertically and horizontally -->
         <div class="border p-5 rounded shadow" style="width: 500px; height: auto; text-align: left;">
+            <!-- Styling for a bordered, rounded container with a drop shadow -->
             <div style="justify-content: center; padding: 10px">
+                <!-- Div for logo, aligning it at the center -->
                 <img src="https://i.imgur.com/2TWSSkP.jpg" alt="logo" style="width:42px;height: 55px;">
+                <!-- Logo image with specified dimensions -->
             </div>
             <h2 class="pb-3">Register</h2>
+            <!-- Heading for the registration form -->
             <form method="POST" action="{% url 'register' %}" style="text-align: left;">
+                <!-- Form for submitting data with POST method -->
+
                 {% csrf_token %}
+                <!-- CSRF token for security -->
 
                 {% if form.errors %}
+                    <!-- Check if there are any form errors -->
                     <p class="alert alert-danger">Either your username or password didn't follow the guidelines. Please try again.</p>
+                    <!-- Display error message -->
                 {% endif %}
+                <!-- End of form error check -->
 
                 <div style="display: inline-block; text-align: left; width: 100%;">
+                    <!-- Container for aligning form fields horizontally -->
                     {% for field in form %}
+                        <!-- Loop through each form field -->
                         <div class="mb-3">
+                            <!-- Container for each form field with margin bottom -->
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            <!-- Label for the form field -->
                             <br> <!-- Add a line break here -->
                             {{ field }}
+                            <!-- Display the form field -->
                         </div>
+                        <!-- End of form field container -->
                     {% endfor %}
+                    <!-- End of form field loop -->
                 </div>
+                <!-- End of inline-block container -->
 
                 <input type="submit" value="Register" class="btn btn-primary" style="margin-top: 10px;">
+                <!-- Button for submitting the registration form -->
             </form>
+            <!-- End of form -->
         </div>
+        <!-- End of container div -->
     </div>
+    <!-- End of main container -->
 {% endblock %}
+<!-- End of content block -->
