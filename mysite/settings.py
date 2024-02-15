@@ -76,7 +76,7 @@ import dj_database_url
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://bycsyiexawvxbg:d6ef989daf27ea5beec9c851e20d56b892760b6f3b8f5be7c568d84563c92578@ec2-34-193-110-25.compute-1.amazonaws.com:5432/d3aqhgtld2m9hd",
+        default="postgres://nxhjddxftixdac:86ae490a7b6f2891f136609ada591dabc0c969403e961d203987d18def9e6faa@ec2-54-86-180-157.compute-1.amazonaws.com:5432/d59dheo7rgtgk8",
         conn_max_age=600,
         ssl_require=True,
     )
@@ -125,11 +125,11 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-#ledgerlogic email information
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+# ledgerlogic email information
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'ledgerlogic.ksu@gmail.com'
-EMAIL_HOST_PASSWORD = 'fexb lrfr bwrh abqu'
+EMAIL_HOST_USER = "ledgerlogic.ksu@gmail.com"
+EMAIL_HOST_PASSWORD = "fexb lrfr bwrh abqu"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

@@ -12,6 +12,22 @@ from django.utils import timezone
 
 
 def login_user(request):
+    """
+    Handles the login process for a user.
+
+    This function authenticates the user based on the username and password provided in the POST request.
+    If the user is found and not suspended, it logs the user in and resets their failed login attempts.
+    If the user is not found or the password is incorrect, it increments their failed login attempts.
+    If the user has 5 or more failed login attempts, it suspends the user's account.
+    If the user's account is suspended, it sends an error message.
+    If the user's suspension has ended, it unsuspends the user's account.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+
+    Returns:
+    HttpResponse: The HTTP response. Redirects to the home page on successful login, or back to the login page on failure.
+    """
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
@@ -66,12 +82,30 @@ def login_user(request):
 
 
 def logout_user(request):
+    """
+    Logs out the current user and redirects to the login page.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+
+    Returns:
+    HttpResponse: The HTTP response. Redirects to the login page.
+    """
     logout(request)
     messages.success(request, "You have successfully logged out.")
     return redirect("login")
 
 
 def register_user(request):
+    """
+    Handles user registration. If the request method is POST and the form is valid, it creates a new user and logs them in.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+
+    Returns:
+    HttpResponse: The HTTP response. Renders the registration form on GET requests or invalid POST requests. Redirects to the home page on successful registration.
+    """
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -87,6 +121,15 @@ def register_user(request):
 
 
 def forgot_password(request):
+    """
+    Handles the forgot password process. If the request method is POST and the form is valid, it checks if a user with the provided username and email exists.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+
+    Returns:
+    HttpResponse: The HTTP response. Renders the forgot password form on GET requests or invalid POST requests. Redirects to the security question page if a user with the provided username and email exists.
+    """
     if request.method == "POST":
         form = ForgotPasswordForm(request.POST)
         if form.is_valid():
@@ -104,6 +147,15 @@ def forgot_password(request):
 
 
 def question(request):
+    """
+    Handles the security question verification process. If the request method is POST and the form is valid, it checks if the provided answers match the user's answers.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+
+    Returns:
+    HttpResponse: The HTTP response. Renders the security question form on GET requests or invalid POST requests. Redirects to the reset password page if the provided answers match the user's answers.
+    """
     username = request.session.get("username")
     if request.method == "POST":
         form = SecurityQuestionForm(request.POST)
@@ -121,6 +173,15 @@ def question(request):
 
 
 def reset_password(request):
+    """
+    Handles the password reset process. If the request method is POST, it checks if the provided passwords match and if a user with the username stored in the session exists.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+
+    Returns:
+    HttpResponse: The HTTP response. Renders the reset password form on GET requests. Redirects to the login page on successful password reset.
+    """
     if request.method == "POST":
         password1 = request.POST.get("password1")
         password2 = request.POST.get("password2")
