@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-    <div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="d-flex justify-content-center align-items-center vh-1000">
         <div class="border p-5 rounded shadow" style="width: 500px; height: auto; text-align: left;">
             <div style="justify-content: center; padding: 10px">
                 <img src="https://i.imgur.com/2TWSSkP.jpg" alt="logo" style="width:42px;height: 55px;">
@@ -22,6 +22,10 @@
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                             <br> <!-- Add a line break here -->
                             {{ field }}
+                            {% if field.name == 'password1' %}
+                                <p style="font-size: 12px;">Passwords must be a minimum of 8 characters, must start with a
+                                    letter, must have a letter, a number and a special character.</p>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
