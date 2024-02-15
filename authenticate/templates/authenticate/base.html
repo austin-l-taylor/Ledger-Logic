@@ -1,34 +1,61 @@
 <!doctype html>
+<!-- Document type declaration -->
+
 <html lang="en">
+<!-- Start of HTML document with language set to English -->
+
     <head>
+    <!-- Start of head section -->
         <meta charset="UTF-8">
+        <!-- Character encoding declaration -->
+
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Viewport meta tag for responsive design -->
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-        
-        <title>Document</title>
-    </head>
-    <body>
-        <br/>
+        <!-- Link to Bootstrap CSS library -->
 
-        <div class = "col-md-6 offset-md-3">
+        <title>Document</title>
+        <!-- Title of the document -->
+    </head>
+    <!-- End of head section -->
+
+    <body>
+    <!-- Start of body section -->
+        <br/>
+        <!-- Line break -->
+
+        <div class="col-md-6 offset-md-3">
+        <!-- Bootstrap grid container with column size and offset -->
             {% if messages %}
+                <!-- Check if there are any messages -->
                 {% for message in messages %}
+                    <!-- Loop through each message -->
                     <div class="alert alert-warning alert-dismissable" roles="alert">
+                    <!-- Bootstrap alert message -->
                         <button class="close" data-dismiss="alert">
+                        <!-- Button to close the alert -->
                             <small><sup>x</sup></small>
+                            <!-- Close button icon -->
                         </button>
                         {{ message }}
+                        <!-- Display the message -->
                     </div>
                 {% endfor %}
             {% endif %}
+            <!-- End of message check -->
             
             <!--Used for replacing code with other block and endblock content from other .html files must include extends "path/base.html"-->
             {% block content %}
+            <!-- Placeholder for content block -->
             {% endblock %}
+            <!-- End of content block -->
         </div>
-        
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+        <!-- End of Bootstrap grid container -->
 
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+        <!-- Bootstrap JavaScript library -->
     </body>
+    <!-- End of body section -->
 </html>
+<!-- End of HTML document -->

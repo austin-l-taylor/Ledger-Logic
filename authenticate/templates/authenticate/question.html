@@ -1,34 +1,74 @@
 {% extends 'authenticate/base.html' %}
+<!-- Extends the base HTML template -->
+
 <body>
+<!-- Start of body -->
+
 {% block content %}
+    <!-- Start of content block -->
     <div class="d-flex justify-content-center align-items-center vh-100">
+        <!-- Container for centering content vertically and horizontally -->
         <div class="border p-5 rounded shadow" style="width: 500px; height: 500px;">
+            <!-- Styling for a bordered, rounded container with a drop shadow -->
             <h2 class="text-center pb-3">Answer Security Questions</h2>
+            <!-- Heading for the security questions form -->
             <form method="POST">
+                <!-- Form for submitting data with POST method -->
+
                 {% csrf_token %}
+                <!-- CSRF token for security -->
+
                 {% if form.errors %}
+                    <!-- Check if there are any form errors -->
                     <ul>
+                        <!-- Start of unordered list for displaying errors -->
                         {% for field in form %}
+                            <!-- Loop through each form field -->
                             {% for error in field.errors %}
+                                <!-- Loop through each error for the current field -->
                                 <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                <!-- Display the error message -->
                             {% endfor %}
                         {% endfor %}
                     </ul>
+                    <!-- End of unordered list -->
                 {% endif %}
+                <!-- End of form error check -->
+
                 <div class="mb-3 text-center">
+                    <!-- Container for security question 1 with margin bottom -->
                     <label class="form-label">What was the name of your best childhood friend growing up?</label>
+                    <!-- Label for security question 1 -->
                     <div class="mt-2"><input type="text" name="answer1" required></div>
+                    <!-- Input field for answering security question 1 -->
                 </div>
+                <!-- End of container for security question 1 -->
+
                 <div class="mb-3 text-center">
+                    <!-- Container for security question 2 with margin bottom -->
                     <label class="form-label">What was the name of the city you were born in?</label>
+                    <!-- Label for security question 2 -->
                     <div class="mt-2"><input type="text" name="answer2" required></div>
+                    <!-- Input field for answering security question 2 -->
                 </div>
+                <!-- End of container for security question 2 -->
+
                 <div class="d-flex justify-content-center">
+                    <!-- Container for centering button horizontally -->
                     <button type="submit" class="btn btn-primary">Submit Answers</button>
+                    <!-- Button for submitting the security answers -->
                 </div>
+                <!-- End of button container -->
             </form>
+            <!-- End of form -->
         </div>
+        <!-- End of container div -->
     </div>
+    <!-- End of main container -->
 {% endblock %}
+<!-- End of content block -->
 </body>
+<!-- End of body -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<!-- Bootstrap JavaScript library -->
