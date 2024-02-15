@@ -22,6 +22,10 @@
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                             <br> <!-- Add a line break here -->
                             {{ field }}
+                            {% if field.name == 'password1' %}
+                                <p style="font-size: 12px;">Passwords must be a minimum of 8 characters, must start with a
+                                    letter, must have a letter, a number and a special character.</p>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
