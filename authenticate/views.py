@@ -28,68 +28,55 @@ def login_user(request):
     Returns:
     HttpResponse: The HTTP response. Redirects to the home page on successful login, or back to the login page on failure.
     """
-    # Check if the user is already logged in
     if request.method == "POST":
-        # Get the username and password from the POST request
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
-        # Check for user existence and suspension status
-        try:
-            # Get the user and check if they are suspended
-            user = CustomUser.objects.get(username=username)
+
+        if user is not None:
             if user.suspension_start_date and user.suspension_end_date:
-                # Update suspension status based on dates
                 if (
                     user.suspension_start_date
                     <= timezone.now().date()
                     <= user.suspension_end_date
                 ):
                     user.is_suspended = True
-                # Auto-lift suspension if current date is outside suspension period
                 elif timezone.now().date() > user.suspension_end_date:
                     user.is_suspended = False
                     user.suspension_start_date = None
                     user.suspension_end_date = None
                 user.save()
-            # Check if the user is not suspended
+
             if not user.is_suspended:
-                user = authenticate(request, username=username, password=password)
-                # Check if the user exists and the password is correct
-                if user:
-                    login(request, user)
-                    user.failed_login_attempts = 0
-                    user.save()
-                    messages.success(request, "You have successfully logged in!")
-                    return redirect("home")
-                # If the user exists but the password is incorrect
-                else:
-                    # Increment failed login attempts
-                    user.failed_login_attempts += 1
-                    if user.failed_login_attempts >= 5:
-                        user.is_suspended = True
-                        user.failed_login_attempts = 0
-                        user.save()
-                        messages.error(
-                            request,
-                            "You've attempted too many times. Your account has been suspended.",
-                        )
-                    # Save the user's failed login attempts
-                    else:
-                        user.save()
-                        messages.error(request, "Invalid username or password.")
+                login(request, user)
+                user.failed_login_attempts = 0
+                user.save()
+                messages.success(request, "You have successfully logged in!")
+                return redirect("home")
             else:
-                # If the user is suspended, send an error message
                 messages.error(
                     request,
                     "Your account has been suspended. Reach out to an admin to unlock it.",
                 )
-        # If the user does not exist
-        except CustomUser.DoesNotExist:
-            messages.error(request, "Invalid username or password.")
+        else:
+            try:
+                user = CustomUser.objects.get(username=username)
+                user.failed_login_attempts += 1
+                if user.failed_login_attempts >= 5:
+                    user.is_suspended = True
+                    user.failed_login_attempts = 0
+                    user.save()
+                    messages.error(
+                        request,
+                        "You've attempted too many times. Your account has been suspended.",
+                    )
+                else:
+                    user.save()
+                    messages.error(request, "Invalid username or password.")
+            except CustomUser.DoesNotExist:
+                messages.error(request, "Invalid username or password.")
 
         return redirect("login")
-    # If the request method is not POST
     else:
         return render(request, "authenticate/login.html", {})
 
