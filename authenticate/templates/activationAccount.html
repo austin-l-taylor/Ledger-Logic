@@ -1,0 +1,9 @@
+{% autoescape off%}
+Hi Admin, 
+
+{{user}} has submitted registration. Please click on the link below to allow registration:
+http://{{domain}}{% url 'activate' uidb64=uid token=token %}
+
+
+
+{% endautoescape %}
