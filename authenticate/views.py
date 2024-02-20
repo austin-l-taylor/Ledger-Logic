@@ -122,10 +122,10 @@ def activate(request, uidb64, token):
         message = EmailMultiAlternatives(mail_subject, mail_content, from_email, [to_email])
         message.send()
         messages.success(request, "User account is now active.")
-        return redirect("authenticate/home.html")
+        return redirect("home")
     else:
         messages.error(request, "Activation link is invalid!")
-    return redirect("authenticate/home.html")
+    return redirect("authenticate/login.html")
 
 def activationEmail(request, user, username):
     mail_subject = "A new user has registered to your site."
@@ -137,7 +137,7 @@ def activationEmail(request, user, username):
         'token': account_activation_token.make_token(user),
         "protcol":'https' if request.is_secure() else 'http'
     })
-    email = EmailMultiAlternatives(mail_subject, message, to=["myin1@students.kennesaw.edu"])
+    email = EmailMultiAlternatives(mail_subject, message, to=["jochoa2@students.kennesaw.edu"])
     email.send()
 
 
@@ -159,9 +159,9 @@ def register_user(request):
             user.is_active=False
             user.save()
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            messages.success(request, "You have successfully registered.")
+            messages.success(request, "You have successfully registered. Please wait for admin to confirm your account.")
             activationEmail(request, user, form.cleaned_data.get('username'))
-            return redirect("home")
+            return redirect("login")
     # If the request method is not POST
     else:
         form = SignUpForm()
