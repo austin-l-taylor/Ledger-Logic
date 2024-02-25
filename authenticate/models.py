@@ -95,3 +95,28 @@ class EmailNotification(models.Model):
     def __str__(self):
         # String representation includes notification type, user, and sent date
         return f"{self.notification_type} notification for {self.user.username} sent on {self.sent_date}"
+
+
+class ChartOfAccounts(models.Model):
+    """
+    A model for storing chart of accounts in the database.
+    This is the main database to be used in Sprint 2.
+    """
+    account_name = models.CharField(max_length=255)
+    account_number = models.CharField(max_length=255)
+    account_description = models.TextField()
+    normal_side = models.CharField(max_length=255)
+    account_category = models.CharField(max_length=255)
+    account_subcategory = models.CharField(max_length=255)
+    initial_balance = models.DecimalField(max_digits=10, decimal_places=2)
+    debit = models.DecimalField(max_digits=10, decimal_places=2)
+    credit = models.DecimalField(max_digits=10, decimal_places=2)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    date_time_account_added = models.DateTimeField(auto_now_add=True)
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    order = models.CharField(max_length=255)
+    statement = models.CharField(max_length=255)
+    comment = models.TextField()
+
+    def __str__(self):
+        return self.account_name
