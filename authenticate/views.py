@@ -5,8 +5,8 @@ from authenticate.models import CustomUser
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.contrib.admin.views.decorators import user_passes_test
-from .forms import SignUpForm, SecurityQuestionForm, ForgotPasswordForm, EmailForm
-from .models import CustomUser
+from .forms import SignUpForm, SecurityQuestionForm, ForgotPasswordForm, EmailForm, ChartOfAccountForm
+from .models import CustomUser, ChartOfAccounts
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -18,6 +18,7 @@ from django.utils.http import  urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMultiAlternatives
 from .tokens import account_activation_token
+from django.contrib.auth.decorators import login_required
 
 
 def login_user(request):
@@ -324,3 +325,80 @@ def send_email_view(request, user_id):
     else:
         form = EmailForm()
     return render(request, "admin_custom/send_email.html", {"form": form, "user": user})
+
+
+@login_required
+def chart_of_accounts(request):
+    """
+    Renders the chart of accounts page but also checks if the user is an admin.
+    """
+    accounts = ChartOfAccounts.objects.all().order_by('order')  # Fetch all accounts, ordered by 'order'
+    is_admin = request.user.is_superuser  # Determine if the user is an admin
+
+    # Pass the accounts and is_admin flag to the template
+    context = {
+        'accounts': accounts,
+        'is_admin': is_admin,
+    }
+    return render(request, 'main_page/chart_of_accounts.html', context)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def add_account(request):
+    """
+    Definition that handles adding a new account to the Chart of Accounts.
+
+    The only thing that you won't see in the table is the user_id field. 
+    This is because the user_id field is automatically set to the current user when the account is added below.
+    """
+    if request.method == 'POST':
+        form = ChartOfAccountForm(request.POST)
+        if form.is_valid():
+            user_instance = get_object_or_404(CustomUser, id=request.user.id)
+            form.instance.user_id = user_instance
+            form.save()
+            messages.success(request, "Account added!")
+            return redirect('chart_of_accounts')
+    else:
+        form = ChartOfAccountForm()
+    return render(request, 'main_page/add_coa_account.html', {'form': form})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def edit_account(request, account_id):
+    """
+    This function is used to edit an account in the Chart of Accounts and the admin ONLY should be able to edit the account.
+    """
+    account = ChartOfAccounts.objects.get(id=account_id)
+    if request.method == 'POST':
+        form = ChartOfAccountForm(request.POST, instance=account)
+        if form.is_valid():
+            form.save()
+            return redirect('chart_of_accounts')
+    else:
+        form = ChartOfAccountForm(instance=account)
+    return render(request, 'main_page/edit_coa_account.html', {'form': form})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def deactivate_account(request, account_id):
+    """
+    This function is used to deactivate an account in the Chart of Accounts and the admin ONLY should be able to deactivate the account.
+    """    
+    account = get_object_or_404(ChartOfAccounts, id=account_id)
+    account.is_active = False
+    account.save()
+    # Redirect to the Chart of Accounts page
+    return redirect('chart_of_accounts')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def activate_account(request, account_id):
+    """
+    This function is used to activate/reactivate an account in the Chart of Accounts and the admin ONLY should be able to activate the account.
+    """
+    account = get_object_or_404(ChartOfAccounts, id=account_id)
+    account.is_active = True
+    account.save()
+    # Redirect to the Chart of Accounts page
+    return redirect('chart_of_accounts')

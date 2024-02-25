@@ -1,30 +1,64 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-        
-        <title>Document</title>
-    </head>
-    <body>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            
-            <div class="container-fluid">
-                <img src="https://i.imgur.com/2TWSSkP.jpg" alt="logo" style="float:right;width:42px;height:42px;">
-              <a class="navbar-brand" href="{% url 'home' %}">LedgerLogic</a> 
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <title>Document</title>
+    <style>
+        .navbar-brand {
+            margin-right: 45px; /* Adjust the margin between the LegderLogic brand and toggle button */
+        }
+        .navbar-nav .nav-link {
+            padding: 0.5rem 1rem; /* Padding for a clickable navbar button */
+            margin-right: 10px; /* margin between navbar buttons */
+            border-radius: 5px; /* Round the corners of the buttons*/
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        }
+        .navbar-nav .nav-link.chart-of-accounts {
+            margin-right: 30px; /* margin between logout and chart of accounts */
+            background-color: #0d6efd; /* background color for chart of accounts - this class could be changed for future buttons*/
+            color: #fff; /* button text color */
+        }
+        .navbar-nav .nav-link.chart-of-accounts:hover {
+            background-color: #0b5ed7; /* Dark background color on hover for buttons */
+        }
+        .navbar-nav .nav-item {
+            display: flex; /* Align items horizontally */
+            align-items: center; /* Center items vertically */
+        }
+        .user-image {
+            margin-left: 10px; /* Adjust margin to separate from logout button */
+            width: 55px;
+            height: 55px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <img src="https://i.imgur.com/2TWSSkP.jpg" alt="logo" style="width:42px;height:42px;">
+            <a class="navbar-brand" href="{% url 'home' %}">LedgerLogic</a> 
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-              </button>
+            </button>
 
-              <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    
+                </ul>
+
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                
+                    <!--navigation links validated depending on user auhtnetication, you can add more here for navigation -->
                     {% if user.is_authenticated %}
                         <li class="nav-item">
+                            <a class="nav-link chart-of-accounts" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                            <img src="https://i.imgur.com/phoWM6F.jpg" alt="logo" style="float:right;width:55px;height: 55px;">
+                        </li>
+                        <li class="nav-item">
+                            <img src="https://i.imgur.com/phoWM6F.jpg" alt="User Image" class="user-image">
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -34,30 +68,28 @@
                             <a class="nav-link" href="{% url 'register' %}">Register</a>
                         </li>
                     {% endif %}
-
                 </ul>
-              </div>
             </div>
-          </nav>
-        <br/>
-
-        <div class = "col-md-6 offset-md-3">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-warning alert-dismissable" roles="alert">
-                        <button class="close" data-dismiss="alert">
-                            <small><sup>x</sup></small>
-                        </button>
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            {% block content %}
-            {% endblock %}
         </div>
-        
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    </nav>
+    <br/>
 
-    </body>
+    <div class="col-md-10 offset-md-1">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissable" roles="alert">
+                    <button class="close" data-dismiss="alert">
+                        <small><sup>x</sup></small>
+                    </button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
 </html>

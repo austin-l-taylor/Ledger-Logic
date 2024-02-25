@@ -105,6 +105,7 @@ class ChartOfAccounts(models.Model):
     account_name = models.CharField(max_length=255)
     account_number = models.CharField(max_length=255)
     account_description = models.TextField()
+    is_active = models.BooleanField(default=True)
     normal_side = models.CharField(max_length=255)
     account_category = models.CharField(max_length=255)
     account_subcategory = models.CharField(max_length=255)

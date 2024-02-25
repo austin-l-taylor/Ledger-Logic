@@ -1,0 +1,13 @@
+<!-- This is the page to add a new account for Chart of Accounts -->
+
+{% extends "main_page/base.html" %}
+
+{% block content %}
+<a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3">Back</a>
+<h2>Add New Account</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Account</button>
+</form>
+{% endblock %}
