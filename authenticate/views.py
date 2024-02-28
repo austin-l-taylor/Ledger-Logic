@@ -276,6 +276,11 @@ def home(request):
     """
     return render(request, "main_page/home.html", {})
 
+def help(request):
+    
+    return render(request, "main_page/help.html", {})
+
+
 
 def is_staff_user(user):
     """
