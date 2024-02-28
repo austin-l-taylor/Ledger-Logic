@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
+from .models import ChartOfAccounts
 
 User = get_user_model()
 
@@ -161,3 +162,18 @@ class EmailForm(forms.Form):
 
     subject = forms.CharField(max_length=100)
     message = forms.CharField(widget=forms.Textarea)
+
+
+class ChartOfAccountForm(forms.ModelForm):
+    """
+    The form displayed for the Chart of Accounts.
+
+    This form uses the model ChartOfAccounts from .models
+
+    If we need to remove a field from the table then we can use the exclude attribute and specify the field name like the user_id field in this case.
+
+    """
+    class Meta:
+        model = ChartOfAccounts
+        fields = '__all__'  # Or list specific fields if you don't want to include all
+        exclude = ('user_id',)  # Exclude user_id if it's automatically set
