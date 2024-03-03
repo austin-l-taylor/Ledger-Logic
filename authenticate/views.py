@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
 from authenticate.models import CustomUser
 from django.core.mail import send_mail
@@ -12,10 +12,9 @@ from .forms import (
     EmailForm,
     ChartOfAccountForm,
 )
-from .models import CustomUser, ChartOfAccounts
+from .models import CustomUser, ChartOfAccounts, CoAEventLog
 from django.conf import settings
 from django.utils import timezone
-from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.template.loader import get_template
@@ -25,6 +24,46 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMultiAlternatives
 from .tokens import account_activation_token
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
+from django.core.serializers import serialize
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
+
+def serialize_account(instance):
+    # Fetch related user instance
+    user = instance.user_id
+
+    # Convert DateTimeField to ISO format
+    date_time_account_added = instance.date_time_account_added.isoformat() if instance.date_time_account_added else None
+
+    # Construct a dictionary of fields to serialize
+    serialized_data = {
+        'account_name': instance.account_name,
+        'account_number': instance.account_number,
+        'account_description': instance.account_description,
+        'is_active': instance.is_active,
+        'normal_side': instance.normal_side,
+        'account_category': instance.account_category,
+        'account_subcategory': instance.account_subcategory,
+        'initial_balance': float(instance.initial_balance) if instance.initial_balance is not None else None,
+        'debit': float(instance.debit) if instance.debit is not None else None,
+        'credit': float(instance.credit) if instance.credit is not None else None,
+        'balance': float(instance.balance) if instance.balance is not None else None,
+        'date_time_account_added': date_time_account_added,
+        'user_id': {
+            'id': user.id,
+            'username': user.username,
+        },
+        'order': instance.order,
+        'statement': instance.statement,
+        'comment': instance.comment,
+    }
+
+    # Serialize data using Django's JSON encoder
+    serialized_json = json.dumps(serialized_data, cls=DjangoJSONEncoder)
+    return serialized_json
+
 from django.db.models import Q
 
 
@@ -407,16 +446,30 @@ def add_account(request):
     return render(request, "main_page/add_coa_account.html", {"form": form})
 
 
-@user_passes_test(lambda u: u.is_superuser)
 def edit_account(request, account_id):
     """
-    This function is used to edit an account in the Chart of Accounts and the admin ONLY should be able to edit the account.
+    Definition that handles editing an account in the Chart of Accounts.
+
+    This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
-    account = ChartOfAccounts.objects.get(id=account_id)
+    account = get_object_or_404(ChartOfAccounts, id=account_id)
+    
     if request.method == "POST":
         form = ChartOfAccountForm(request.POST, instance=account)
         if form.is_valid():
+            before_edit_snapshot = serialize_account(account)  # Serialize before making changes
             form.save()
+            after_edit_snapshot = serialize_account(account)  # Serialize after saving changes
+            
+            # Log the change
+            CoAEventLog.objects.create(
+                user=request.user,
+                action='modified',
+                before_change=before_edit_snapshot,
+                after_change=after_edit_snapshot,
+                chart_of_account=account
+            )
+            messages.success(request, "Account updated successfully!")
             return redirect("chart_of_accounts")
     else:
         form = ChartOfAccountForm(instance=account)
@@ -426,22 +479,98 @@ def edit_account(request, account_id):
 @user_passes_test(lambda u: u.is_superuser)
 def deactivate_account(request, account_id):
     """
-    This function is used to deactivate an account in the Chart of Accounts and the admin ONLY should be able to deactivate the account.
+    Definition that handles deactivating an account in the Chart of Accounts.
+
+    This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
+    before_change = serialize('json', [account])
+    
     account.is_active = False
     account.save()
-    # Redirect to the Chart of Accounts page
+    
+    after_change = serialize('json', [account])
+    
+    CoAEventLog.objects.create(
+        user=request.user,
+        action='deactivated',
+        before_change=before_change,
+        after_change=after_change,
+        timestamp=now(),
+        chart_of_account=account
+    )
+    
     return redirect("chart_of_accounts")
-
 
 @user_passes_test(lambda u: u.is_superuser)
 def activate_account(request, account_id):
     """
-    This function is used to activate/reactivate an account in the Chart of Accounts and the admin ONLY should be able to activate the account.
+    Definition that handles activating an account in the Chart of Accounts.
+
+    This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
+    before_change = serialize('json', [account])
+    
     account.is_active = True
     account.save()
-    # Redirect to the Chart of Accounts page
+    
+    after_change = serialize('json', [account])
+    
+    CoAEventLog.objects.create(
+        user=request.user,
+        action='activated',
+        before_change=before_change,
+        after_change=after_change,
+        timestamp=now(),
+        chart_of_account=account
+    )
+    
     return redirect("chart_of_accounts")
+
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def view_coa_logs(request):
+    """
+    Definition that handles viewing the Chart of Accounts event logs.
+
+    This one is also handling the JSON serialization of the before and after changes. 
+    However, the JSON data is currently not showing correctly in the view_coa_logs.html page.
+    This one needs to be fixed if we have time!!!!!!!!!!!!!!!!
+
+    """
+    # Fetch all log changes
+    logs = CoAEventLog.objects.all()
+    
+    # Serialize the before_change and after_change fields as JSON strings
+    serialized_logs = []
+    for log in logs:
+        before_change = log.before_change
+        after_change = log.after_change
+        
+        # Parse JSON strings into Python objects
+        before_change_data = json.loads(before_change) if before_change else None
+        after_change_data = json.loads(after_change) if after_change else None
+        
+        serialized_logs.append({
+            'user': log.user.username,
+            'action': log.action,
+            'timestamp': log.timestamp,
+            'before_change': before_change_data,
+            'after_change': after_change_data,
+        })
+
+    return render(request, 'main_page/view_coa_logs.html', {'logs': serialized_logs})
+
+def format_change_data(data):
+    """
+    This function formats the change data to a string.
+    This is where we might be able to fix the issue with the JSON data not showing correctly in the view_coa_logs.html page.
+    """
+    formatted_change = ''
+    for change in data:
+        fields = change.get('fields', {})
+        for key, value in fields.items():
+            formatted_change += f"{key}: {value} ;"
+    return formatted_change
