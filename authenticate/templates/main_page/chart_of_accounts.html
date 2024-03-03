@@ -42,7 +42,7 @@
             <tbody>
                 {% for account in accounts %}
                 <tr>
-                    <td>{{ account.account_name }}</td>
+                    <td><a href="{% url 'ledger' account.id %}">{{ account.account_name }}</a></td>
                     <td>{{ account.account_number }}</td>
                     <td>{{ account.account_description }}</td>
                     <td>{{ account.account_category }}</td>

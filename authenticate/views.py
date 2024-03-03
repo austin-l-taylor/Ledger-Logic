@@ -353,6 +353,9 @@ def chart_of_accounts(request):
     """
     query = request.GET.get("q")
     is_admin = request.user.is_superuser  # Determine if the user is an admin
+    selected_account = request.GET.get("selected_account")
+    if selected_account:
+        return redirect("ledger", account_id=selected_account)
 
     if query:
         accounts = ChartOfAccounts.objects.filter(
@@ -364,7 +367,7 @@ def chart_of_accounts(request):
         ).order_by("order")
     else:
         accounts = ChartOfAccounts.objects.all().order_by(
-            "order"
+            "order",
         )  # Fetch all accounts, ordered by 'order'
 
     # Pass the accounts and is_admin flag to the template
@@ -373,6 +376,14 @@ def chart_of_accounts(request):
         "is_admin": is_admin,
     }
     return render(request, "main_page/chart_of_accounts.html", context)
+
+
+def ledger(request, account_id):
+    """
+    This function is used to render the ledger page.
+    """
+    account = get_object_or_404(ChartOfAccounts, id=account_id)
+    return render(request, "main_page/ledger.html", {"account": account})
 
 
 @user_passes_test(lambda u: u.is_superuser)
