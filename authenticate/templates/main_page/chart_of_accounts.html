@@ -5,6 +5,16 @@
 <div class="container mt-4">
     <h2 class="text-center">Chart of Accounts</h2>
 
+    <!-- Search Form -->
+    <form method="GET" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search accounts..." value="{{ request.GET.q }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
     <!-- table wrapper -->
     <div class="table-responsive">
         <!-- Chart of Accounts Table -->
@@ -66,6 +76,7 @@
 {% if is_admin %}
 <div class="text-center mt-3"> <!-- Center the button and add some top margin -->
     <a href="{% url 'add_account' %}" class="btn btn-success">Add New Account</a>
+    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2">Clear Search</a>
 </div>
 {% endif %}
 
