@@ -17,4 +17,5 @@ urlpatterns = [
     path('account/activate/<int:account_id>/', activate_account, name='activate_account'),
     path('account/add/', add_account, name='add_account'),
     path('account/edit/<int:account_id>/', views.edit_account, name='edit_account'),
+    path('view-coa-logs/', views.view_coa_logs, name='view_coa_logs'),
 ]
