@@ -62,10 +62,12 @@
     </div>
 </div>
 
-<!-- Add New Account Button -->
+<!-- Add New Account Button but only for admins -->
+{% if is_admin %}
 <div class="text-center mt-3"> <!-- Center the button and add some top margin -->
     <a href="{% url 'add_account' %}" class="btn btn-success">Add New Account</a>
 </div>
+{% endif %}
 
 <!-- some custom styles to the table -->
 <style>
