@@ -15,6 +15,16 @@
         </div>
     </div>
 
+    <!-- Search Form -->
+    <form method="GET" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search accounts..." value="{{ request.GET.q }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
     <!-- table wrapper -->
     <div class="table-responsive">
         <!-- Chart of Accounts Table -->
@@ -42,7 +52,7 @@
             <tbody>
                 {% for account in accounts %}
                 <tr>
-                    <td>{{ account.account_name }}</td>
+                    <td><a href="{% url 'ledger' account.id %}">{{ account.account_name }}</a></td>
                     <td>{{ account.account_number }}</td>
                     <td>{{ account.account_description }}</td>
                     <td>{{ account.account_category }}</td>
@@ -72,12 +82,16 @@
     </div>
 </div>
 
-<!-- Add New Account Button but only for admins -->
-{% if is_admin %}
-<div class="text-center mt-3"> <!-- Center the button and add some top margin -->
+<!-- Buttons at the bottom of the Chart of Accounts -->
+<div class="text-center mt-3"> <!-- Center the buttons and add some top margin -->
+    <!-- Add New Account Button but only for admins -->
+    {% if is_admin %}
     <a href="{% url 'add_account' %}" class="btn btn-success">Add New Account</a>
+    {% endif %}
+    
+    <!-- Clear Search Button -->
+    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2">Clear Search</a>
 </div>
-{% endif %}
 
 <!-- some custom styles to the table -->
 <style>
