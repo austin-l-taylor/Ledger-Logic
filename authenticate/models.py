@@ -103,7 +103,7 @@ class ChartOfAccounts(models.Model):
     This is the main database to be used in Sprint 2.
     """
     account_name = models.CharField(max_length=255)
-    account_number = models.CharField(max_length=255)
+    account_number = models.PositiveIntegerField()
     account_description = models.TextField()
     is_active = models.BooleanField(default=True)
     normal_side = models.CharField(max_length=255)
