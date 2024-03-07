@@ -1,0 +1,32 @@
+<!-- This HTML page is for the event logs from the database for the Chart of Accounts changes -->
+{% extends "main_page/base.html" %}
+
+{% block content %}
+  <!-- Button to go back -->
+  <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3">Back</a>
+     
+  <!-- Log changes content -->
+  <h2>Chart of Accounts Log Changes</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Action</th>
+        <th>Timestamp</th>
+        <th>Before Change</th>
+        <th>After Change</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+        <tr>
+          <td>{{ log.user }}</td>
+          <td>{{ log.action }}</td>
+          <td>{{ log.timestamp }}</td>
+          <td>{{ log.before_change|default:"N/A" }}</td>
+          <td>{{ log.after_change|default:"N/A" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

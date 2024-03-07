@@ -1,0 +1,45 @@
+{% extends "main_page/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Ledger Page</h2>
+
+    <!-- Ledger Table -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2022-01-01</td>
+                    <td>Opening balance</td>
+                    <td>1000.00</td>
+                    <td>0.00</td>
+                    <td>1000.00</td>
+                </tr>
+                <tr>
+                    <td>2022-01-02</td>
+                    <td>Purchase of office supplies</td>
+                    <td>200.00</td>
+                    <td>0.00</td>
+                    <td>800.00</td>
+                </tr>
+                <tr>
+                    <td>2022-01-03</td>
+                    <td>Sale of goods</td>
+                    <td>0.00</td>
+                    <td>500.00</td>
+                    <td>1300.00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

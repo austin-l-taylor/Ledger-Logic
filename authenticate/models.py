@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-
+from django.db.models import JSONField
 
 class CustomUser(AbstractUser):
     """
@@ -103,7 +103,7 @@ class ChartOfAccounts(models.Model):
     This is the main database to be used in Sprint 2.
     """
     account_name = models.CharField(max_length=255)
-    account_number = models.CharField(max_length=255)
+    account_number = models.PositiveIntegerField()
     account_description = models.TextField()
     is_active = models.BooleanField(default=True)
     normal_side = models.CharField(max_length=255)
@@ -121,3 +121,23 @@ class ChartOfAccounts(models.Model):
 
     def __str__(self):
         return self.account_name
+    
+
+class CoAEventLog(models.Model):
+    """
+    A model for storing chart of accounts event log in the database.
+    """
+    ACTION_CHOICES = [
+        ('added', 'Added'),
+        ('modified', 'Modified'),
+        ('deactivated', 'Deactivated'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    action = models.CharField(max_length=11, choices=ACTION_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    before_change = models.TextField(blank=True, null=True)  # Stores the snapshot before change
+    after_change = models.TextField(blank=True, null=True)  # Stores the snapshot after change
+    chart_of_account = models.ForeignKey('ChartOfAccounts', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.chart_of_account.account_name} - {self.action} - {self.timestamp}"
