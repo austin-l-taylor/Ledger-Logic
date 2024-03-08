@@ -476,14 +476,23 @@ def edit_account(request, account_id):
     return render(request, "main_page/edit_coa_account.html", {"form": form})
 
 
+
 @user_passes_test(lambda u: u.is_superuser)
 def deactivate_account(request, account_id):
     """
     Definition that handles deactivating an account in the Chart of Accounts.
+    Accounts with a balance greater than 0 cannot be deactivated.
 
     This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
+
+    # Check if the account has a balance greater than 0
+    balance = CoAEventLog.objects.filter(chart_of_account=account).aggregate(Sum('balance'))['balance__sum']
+    if balance is not None and balance > 0:
+        messages.error(request, "Accounts with a balance greater than 0 cannot be deactivated.")
+        return redirect("chart_of_accounts")
+
     before_change = serialize('json', [account])
     
     account.is_active = False
