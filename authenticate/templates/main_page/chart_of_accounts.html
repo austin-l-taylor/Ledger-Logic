@@ -25,6 +25,14 @@
         </div>
     </form>
 
+    <!-- Date Input Field -->
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="datepicker" placeholder="Select date">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+        </div>
+    </div>
+
     <!-- table wrapper -->
     <div class="table-responsive">
         <!-- Chart of Accounts Table -->
@@ -92,6 +100,16 @@
     <!-- Clear Search Button -->
     <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2">Clear Search</a>
 </div>
+
+<!-- Include datepicker.js -->
+<script src="https://cdn.jsdelivr.net/npm/datepicker.js"></script>
+
+<!-- Initialize datepicker -->
+<script>
+    const datepicker = new Datepicker(document.getElementById('datepicker'), {
+        // options if needed
+    });
+</script>
 
 <!-- some custom styles to the table -->
 <style>
