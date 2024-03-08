@@ -28,6 +28,7 @@ from django.utils.timezone import now
 from django.core.serializers import serialize
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+from django.db.models import Sum
 
 
 def serialize_account(instance):
@@ -482,13 +483,11 @@ def deactivate_account(request, account_id):
     """
     Definition that handles deactivating an account in the Chart of Accounts.
     Accounts with a balance greater than 0 cannot be deactivated.
-
-    This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
 
     # Check if the account has a balance greater than 0
-    balance = CoAEventLog.objects.filter(chart_of_account=account).aggregate(Sum('balance'))['balance__sum']
+    balance = ChartOfAccounts.objects.filter(id=account_id).aggregate(Sum('balance'))['balance__sum']
     if balance is not None and balance > 0:
         messages.error(request, "Accounts with a balance greater than 0 cannot be deactivated.")
         return redirect("chart_of_accounts")
