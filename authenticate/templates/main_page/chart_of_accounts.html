@@ -52,7 +52,7 @@
             <tbody>
                 {% for account in accounts %}
                 <tr>
-                    <td><a href="{% url 'ledger' account.id %}">{{ account.account_name }}</a></td>
+                    <td><a href="{% url 'ledger' account.id %}" title="click to see account info">{{ account.account_name }}</a></td>
                     <td>{{ account.account_number }}</td>
                     <td>{{ account.account_description }}</td>
                     <td>{{ account.account_category }}</td>
@@ -67,7 +67,7 @@
                     <td>{{ account.is_active|yesno:"Active,Inactive" }}</td>
                     {% if is_admin %}
                     <td>
-                        <a href="{% url 'edit_account' account.id %}">Edit</a> |
+                        <a href="{% url 'edit_account' account.id %}" title="edit account">Edit</a> |
                         {% if account.is_active %}
                             <a href="{% url 'deactivate_account' account.id %}">Deactivate</a>
                         {% else %}
