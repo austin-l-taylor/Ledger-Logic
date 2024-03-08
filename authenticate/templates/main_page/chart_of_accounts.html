@@ -25,13 +25,42 @@
         </div>
     </form>
 
-    <!-- Date Input Field -->
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" id="datepicker" placeholder="Select date">
-        <div class="input-group-append">
-            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-        </div>
+  <!-- Link to Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Link to Bootstrap-datepicker CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css" rel="stylesheet">
+
+<!-- Link to Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+
+<!-- Date Input Field with Bootstrap-datepicker -->
+<div class="input-group mb-3">
+    <input type="text" class="form-control datepicker" id="datepicker" placeholder="Select date">
+    <div class="input-group-append">
+        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
     </div>
+</div>
+
+<!-- Script to Initialize Bootstrap-datepicker -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+
+<script>
+    // Initialize datepicker
+    $(document).ready(function(){
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true,
+            orientation: "bottom",
+            templates: {
+                leftArrow: '<i class="fas fa-chevron-left"></i>',
+                rightArrow: '<i class="fas fa-chevron-right"></i>'
+            }
+        });
+    });
+</script>
+
 
     <!-- table wrapper -->
     <div class="table-responsive">
