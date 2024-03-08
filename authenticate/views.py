@@ -28,6 +28,7 @@ from django.utils.timezone import now
 from django.core.serializers import serialize
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+from django.contrib.auth.hashers import check_password
 
 
 def serialize_account(instance):
@@ -311,6 +312,10 @@ def reset_password(request):
                 messages.error(request, "No user found.")
                 return redirect("question")
             user = CustomUser.objects.get(username=username)
+            password_histories = user.password
+            if check_password(password1, password_histories):
+                messages.error(request, "That password has already been used")
+                return redirect("reset_password")
             user.set_password(password1)
             user.save()
             # Clear the session
