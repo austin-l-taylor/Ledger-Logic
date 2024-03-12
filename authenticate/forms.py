@@ -177,3 +177,6 @@ class ChartOfAccountForm(forms.ModelForm):
         model = ChartOfAccounts
         fields = '__all__'  # Or list specific fields if you don't want to include all
         exclude = ('user_id',)  # Exclude user_id if it's automatically set
+        widgets = {
+            'date_time_account_added': forms.DateInput(attrs={'type': 'date'}),
+        }
