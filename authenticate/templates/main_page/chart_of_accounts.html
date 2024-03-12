@@ -25,6 +25,9 @@
         </div>
     </form>
 
+    <input type="date" id="date">
+
+
     <!-- table wrapper -->
     <div class="table-responsive">
         <!-- Chart of Accounts Table -->
@@ -92,6 +95,16 @@
     <!-- Clear Search Button -->
     <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2">Clear Search</a>
 </div>
+
+<!-- Include datepicker.js -->
+<script src="https://cdn.jsdelivr.net/npm/datepicker.js"></script>
+
+<!-- Initialize datepicker -->
+<script>
+    const datepicker = new Datepicker(document.getElementById('datepicker'), {
+        // options if needed
+    });
+</script>
 
 <!-- some custom styles to the table -->
 <style>
