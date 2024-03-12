@@ -2,11 +2,11 @@
 {% extends "main_page/base.html" %} 
 
 {% block content %}
-<a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3">Back</a>
+<a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back</a>
 <h2>Edit Account</h2>
 <form method="post" novalidate>
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Update Account</button>
+    <button type="submit" title= "submit changes">Update Account</button>
 </form>
 {% endblock %}

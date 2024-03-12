@@ -334,7 +334,9 @@ def home(request):
     HttpResponse: The HTTP response. Renders the home page.
     """
     return render(request, "main_page/home.html", {})
-
+def help(request):
+    """same as above but for the help page"""
+    return render(request, "main_page/help.html", {})
 
 def is_staff_user(user):
     """
