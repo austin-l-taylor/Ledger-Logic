@@ -31,4 +31,5 @@ urlpatterns = [
     path("account/edit/<int:account_id>/", views.edit_account, name="edit_account"),
     path("ledger/<int:account_id>/", views.ledger, name="ledger"),
     path('view-coa-logs/', views.view_coa_logs, name='view_coa_logs'),
+    path("help/", views.help, name="help"),
 ]
