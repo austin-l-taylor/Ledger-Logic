@@ -102,8 +102,8 @@ class ChartOfAccounts(models.Model):
     A model for storing chart of accounts in the database.
     This is the main database to be used in Sprint 2.
     """
-    account_name = models.CharField(max_length=255)
-    account_number = models.PositiveIntegerField()
+    account_name = models.CharField(max_length=255, unique=True)
+    account_number = models.PositiveIntegerField(unique=True)
     account_description = models.TextField()
     is_active = models.BooleanField(default=True)
     normal_side = models.CharField(max_length=255)

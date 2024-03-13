@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "authenticate",
+    "django.contrib.humanize",
 ]
 
 MIDDLEWARE = [
