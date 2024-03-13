@@ -2,6 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
+    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back</a>
     <h2 class="text-center">Ledger Page</h2>
 
     <!-- Ledger Table -->
@@ -40,9 +41,6 @@
                 </tr>
             </tbody>
         </table>
-        <li class="nav-item" title="go back">
-            <a class="nav-link" href="{% url 'chart_of_accounts' %}">return</a>
-        </li>
     </div>
 </div>
 {% endblock %}
