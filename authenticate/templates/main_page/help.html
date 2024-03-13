@@ -2,8 +2,30 @@
 
 {% block content %}
 
-<h1>This is the help page. We currently have no answers to your questions at the moment.</h1>
- 
+<h1>Welcome to the LedgerLogic Help Page!</h1>
+
+<br>
+
+<!-- Add Home Page Section with Link -->
+<section id="home-page">
+    <h2><a href="{% url 'home' %}">Home Page</a></h2>
+    <strong><p>The home page is where you will find widgets. As you use the app, the most used tables will display here, making it easier to access frequently used data.</p></strong>
+</section>
+
+<br>
+
+<!-- Add Chart of Accounts Section with Link -->
+<section id="chart-of-accounts">
+    <h2><a href="{% url 'chart_of_accounts' %}">Chart of Accounts</a></h2>
+    <strong><p>The Chart of Accounts page contains a table with all accounts in the general ledger, providing a comprehensive overview of financial data.</p></strong>
+</section>
+
+<br>
+<br>
+
+<!-- Add Contact Admin Section -->
+<section id="contact-admin">
+    <p>If you have further questions, please reach out to an admin at <a href="mailto:ledgerlogic.ksu@gmail.com">ledgerlogic.ksu@gmail.com</a>.</p>
+</section>
 
 {% endblock %}
-
