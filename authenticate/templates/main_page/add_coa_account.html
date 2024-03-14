@@ -3,11 +3,39 @@
 {% extends "main_page/base.html" %}
 
 {% block content %}
-<a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back</a>
-<h2>Add New Account</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" title = "add new account">Save Account</button>
-</form>
+<div class="container mt-3">
+    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back</a>
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h2 class="mb-4 text-center">Add New Account</h2>
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="row mb-2">
+                    <div class="col-md-5 text-md-right">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    </div>
+                    <div class="col-md-7">
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="text-center mb-5">
+                    <button type="submit" class="btn btn-primary" title="Add new account">Save Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
+
+
+
