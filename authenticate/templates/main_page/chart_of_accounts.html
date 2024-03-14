@@ -14,7 +14,7 @@
         {% endif %}
     </div>
     
-    <!-- Search Form -->
+    <!-- Original Search Form 
     <form method="GET" class="mb-3">
         <div class="input-group">
             <input type="text" name="q" class="form-control" placeholder="Search accounts..." value="{{ request.GET.q }}">
@@ -23,8 +23,9 @@
             </div>
         </div>
     </form>
-
-    <input type="date" id="date">
+    -->
+    
+    <input type="date" id="date" style="margin-bottom: 20px;">
 
 
     <!-- table wrapper -->
@@ -87,14 +88,15 @@
 
 
 <!-- Buttons at the bottom of the Chart of Accounts -->
-<div class="text-center mt-3"> <!-- Center the buttons and add some top margin -->
+<div class="text-center mt-3 mb-5"> <!-- Center the buttons and add some top margin -->
     <!-- Add New Account Button but only for admins -->
     {% if is_admin %}
     <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account" >Add New Account</a>
     {% endif %}
     
-    <!-- Clear Search Button -->
+    <!-- Original Clear Search Button 
     <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2" title="clear current search">Clear Search</a>
+    -->
 </div>
 
 <!-- Include datepicker.js -->
