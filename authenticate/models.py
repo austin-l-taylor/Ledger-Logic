@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import JSONField
+from django.db import models, transaction
 
 class CustomUser(AbstractUser):
     """
@@ -141,3 +142,79 @@ class CoAEventLog(models.Model):
 
     def __str__(self):
         return f"{self.chart_of_account.account_name} - {self.action} - {self.timestamp}"
+    
+
+class ErrorMessages(models.Model):
+    """
+    A model for storing the custom error message to be diplayed throughout the COA, General Ledger, and Journal Entry pages
+    This is to be used to help the user resolve their error.
+    """
+    error_code = models.CharField(max_length=100)
+    error_message = models.TextField() #error message should tell the user the error AND how to resolve
+
+    def __str__(self):
+        return f"{self.error_code} - {self.error_message}"
+    
+
+class GeneralLedger(models.Model):
+    """
+    A model for storing the information to be used for the General Ledger page.
+    The General Ledger will not be updated manually by the user but instead display everything directly from the table
+    We want all the Journal Entry page approved additions to be displayed here only but all actually add are done in the Journal Entry page.
+    """
+    account = models.ForeignKey('ChartOfAccounts', on_delete=models.CASCADE, related_name="general_ledger_entries")
+    journal_entry = models.ForeignKey('JournalEntry', on_delete=models.CASCADE, related_name="general_ledger_entries", null=True, blank=True)
+    date_of_journal_entry = models.DateField()
+    description = models.TextField()
+    debit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, editable=False)  # Calculated field, not user-editable
+
+    def __str__(self):
+        return f"{self.date_of_journal_entry} - {self.account.account_name} - {self.description}"
+    
+
+class JournalEntry(models.Model):
+    """
+    Model for Journal Entries table to used in the Journal Entry page.
+    This one will be the most used and is already linked to Chart of Accounts and General Ledger.
+    The accounts available here will only be those from the Chart of Accounts page.
+    """
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Denied', 'Denied'),
+    )
+    
+    date = models.DateField()
+    account = models.ForeignKey('ChartOfAccounts', on_delete=models.CASCADE, related_name="journal_entries")
+    debit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='Pending')
+    
+    def approve(self):
+        if self.status == 'Pending':
+            with transaction.atomic():
+                self.status = 'Approved'
+                self.save()
+                
+                # Update the account balance in ChartOfAccounts
+                account = self.account
+                account.debit += self.debit
+                account.credit += self.credit
+                account.balance = account.initial_balance + account.debit - account.credit
+                account.save()
+                
+                # Create a corresponding entry in GeneralLedger
+                GeneralLedger.objects.create(
+                    account=self.account,
+                    journal_entry=self,  # Link to the JournalEntry instance
+                    date_of_journal_entry=self.date,
+                    description=f"Approved Journal Entry: {self.pk}",
+                    debit=self.debit,
+                    credit=self.credit,
+                    balance=account.balance,
+                )
+    
+    def __str__(self):
+        return f"{self.date} - {self.account.account_name} - Status: {self.status}"
