@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,13 +75,15 @@ DATABASES = {
 }
 """
 
+load_dotenv()
+
 import dj_database_url
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://exyfzizwspcrfo:c7d4f486145b5071f625c1a7f910013fda314e3754fa3bbea337e606c3319ad5@ec2-23-21-10-246.compute-1.amazonaws.com:5432/d98irq1coq6apv",
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True,
+        ssl_require=True
     )
 }
 

@@ -119,3 +119,7 @@ env/
 ehthumbs.db
 Thumbs.db
 *.pyc
+
+
+# .env
+.env
