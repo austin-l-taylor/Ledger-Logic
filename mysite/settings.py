@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '::1']
+ALLOWED_HOSTS = ['*','localhost', '127.0.0.1', '::1']
 
 HEROKU_HOSTNAME = os.environ.get('HEROKU_HOSTNAME')
 if HEROKU_HOSTNAME:
