@@ -7,7 +7,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-ALLOWED_HOSTS = ['ledgerlogic-2378924e6cfe.herokuapp.com', 'localhost', '127.0.0.1', '::1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '::1']
+
+HEROKU_HOSTNAME = os.environ.get('HEROKU_HOSTNAME')
+if HEROKU_HOSTNAME:
+    ALLOWED_HOSTS.append(HEROKU_HOSTNAME)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
