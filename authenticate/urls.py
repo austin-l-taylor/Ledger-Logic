@@ -6,6 +6,7 @@ from .views import (
     deactivate_account,
     activate_account,
     add_account,
+    journal_entry_page,
 )
 
 urlpatterns = [
@@ -32,4 +33,5 @@ urlpatterns = [
     path("ledger/<int:account_id>/", views.ledger, name="ledger"),
     path('view-coa-logs/', views.view_coa_logs, name='view_coa_logs'),
     path("help/", views.help, name="help"),
+    path('journal-entries/', journal_entry_page, name='journal_entry_page'),
 ]

@@ -12,7 +12,7 @@ from .forms import (
     EmailForm,
     ChartOfAccountForm,
 )
-from .models import CustomUser, ChartOfAccounts, CoAEventLog
+from .models import CustomUser, ChartOfAccounts, CoAEventLog, JournalEntry
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sites.shortcuts import get_current_site
@@ -589,3 +589,12 @@ def format_change_data(data):
         for key, value in fields.items():
             formatted_change += f"{key}: {value} ;"
     return formatted_change
+
+def journal_entry_page(request):
+    """
+    This function defines the main Journal Entry Page
+    This page displays all of the data from the database table JournalEntry
+    """
+    journal_entries = JournalEntry.objects.all()
+    is_admin = request.user.is_staff
+    return render(request, 'main_page/journal_entry_page.html', {'journal_entries': journal_entries, 'is_admin': is_admin})

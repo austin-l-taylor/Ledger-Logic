@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
-from .models import ChartOfAccounts
+from .models import ChartOfAccounts, JournalEntry
 
 User = get_user_model()
 
@@ -180,3 +180,9 @@ class ChartOfAccountForm(forms.ModelForm):
         widgets = {
             'date_time_account_added': forms.DateInput(attrs={'type': 'date'}),
         }
+
+
+class JournalEntryForm(forms.ModelForm):
+    class Meta:
+        model = JournalEntry
+        fields = ['date', 'account', 'debit', 'credit', 'status']

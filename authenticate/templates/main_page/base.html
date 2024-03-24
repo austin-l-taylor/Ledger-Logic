@@ -16,12 +16,12 @@
             border-radius: 5px; /* Round the corners of the buttons*/
             transition: background-color 0.3s ease; /* Smooth transition for hover effect */
         }
-        .navbar-nav .nav-link.chart-of-accounts {
+        .navbar-nav .nav-link.functions {
             margin-right: 30px; /* margin between logout and chart of accounts */
             background-color: #0d6efd; /* background color for chart of accounts - this class could be changed for future buttons*/
             color: #fff; /* button text color */
         }
-        .navbar-nav .nav-link.chart-of-accounts:hover {
+        .navbar-nav .nav-link.functions:hover {
             background-color: #0b5ed7; /* Dark background color on hover for buttons */
         }
         .navbar-nav .nav-item {
@@ -52,8 +52,11 @@
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <!--navigation links validated depending on user auhtnetication, you can add more here for navigation -->
                     {% if user.is_authenticated %}
+                        <li class="nav-item" title="see journal entries">
+                            <a class="nav-link functions" href="{% url 'journal_entry_page' %}">Journal Entries</a>
+                        </li>
                         <li class="nav-item" title="see all accounts">
-                            <a class="nav-link chart-of-accounts" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a>
+                            <a class="nav-link functions" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a>
                         </li>
                         <li class="nav-item" title="get help">
                             <a class="nav-link" href="{% url 'help' %}">Help?</a>
