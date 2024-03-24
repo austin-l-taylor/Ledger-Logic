@@ -97,6 +97,10 @@ class EmailNotification(models.Model):
         # String representation includes notification type, user, and sent date
         return f"{self.notification_type} notification for {self.user.username} sent on {self.sent_date}"
 
+LeftRight =(
+    ('Left', ('Left')),
+   ('Right', ('Right')),
+)
 
 class ChartOfAccounts(models.Model):
     """
@@ -107,7 +111,7 @@ class ChartOfAccounts(models.Model):
     account_number = models.PositiveIntegerField(unique=True)
     account_description = models.TextField()
     is_active = models.BooleanField(default=True)
-    normal_side = models.CharField(max_length=255)
+    normal_side = models.CharField(max_length=255, choices = LeftRight)
     account_category = models.CharField(max_length=255)
     account_subcategory = models.CharField(max_length=255)
     initial_balance = models.DecimalField(max_digits=10, decimal_places=2)
