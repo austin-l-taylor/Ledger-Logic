@@ -14,7 +14,6 @@
         {% endif %}
     </div>
     
-    <input type="date" id="date" style="margin-bottom: 20px;">
 
 
     <!-- table wrapper -->
@@ -98,6 +97,28 @@
     });
 </script>
 
+<script>
+    function thFunction() {
+     var input, filter, table, tr, td, i, txtValue;
+     input = document.getElementById("inpu");
+     filter = input.value.toUpperCase();
+     table = document.getElementById("table");
+     tr = table.getElementsByTagName("tr");
+      // search through table
+     for (i = 0; i < tr.length; i++) {
+       td = tr[i].getElementsByTagName("td")[0];
+       if (td) {
+         txtValue = td.textContent || td.innerText;
+         if (txtValue.toUpperCase().indexOf(filter) > -1) {
+           tr[i].style.display = "";
+         } else {
+           tr[i].style.display = "none";
+         }
+       }
+     }
+    }
+    
+    </script>
 <!-- some custom styles to the table -->
 <style>
     .thead-dark th {
