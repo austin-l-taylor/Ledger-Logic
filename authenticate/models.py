@@ -195,6 +195,7 @@ class JournalEntry(models.Model):
     debit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='Pending')
+    comments = models.TextField(blank=True, null=True)
     
     def approve(self):
         if self.status == 'Pending':
