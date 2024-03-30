@@ -29,8 +29,8 @@ from django.core.serializers import serialize
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 from django.db.models import Sum
-from django.db import transaction
 from django.contrib.auth.hashers import check_password
+from decimal import Decimal
 
 
 def serialize_account(instance):
@@ -632,14 +632,14 @@ def add_journal_entry(request):
     if request.method == "POST":
         # Extract data from form
         account1_name = request.POST.get("account1")
-        debit1 = float(request.POST.get("debit1", 0))  # Default to 0 if not provided
-        credit1 = float(request.POST.get("credit1", 0))  # Default to 0 if not provided
+        debit1 = Decimal(request.POST.get("debit1", 0))
+        credit1 = Decimal(request.POST.get("credit1", 0))
         date1 = request.POST.get("date1")
         comments1 = request.POST.get("comments1")
 
         account2_name = request.POST.get("account2")
-        debit2 = float(request.POST.get("debit2", 0))  # Default to 0 if not provided
-        credit2 = float(request.POST.get("credit2", 0))  # Default to 0 if not provided
+        debit2 = Decimal(request.POST.get("debit2", 0))
+        credit2 = Decimal(request.POST.get("credit2", 0))
         date2 = request.POST.get("date2")
         comments2 = request.POST.get("comments2")
 
@@ -665,6 +665,7 @@ def add_journal_entry(request):
                 credit=credit1,
                 date=date1,
                 comments=comments1,
+                status="Approved",
             )
             JournalEntry.objects.create(
                 account=account2,
@@ -672,6 +673,7 @@ def add_journal_entry(request):
                 credit=credit2,
                 date=date2,
                 comments=comments2,
+                status="Approved",
             )
 
         except ChartOfAccounts.DoesNotExist:
