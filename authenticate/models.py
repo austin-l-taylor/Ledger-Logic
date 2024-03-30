@@ -5,7 +5,6 @@ from django.utils import timezone
 from django.db.models import JSONField
 from django.db import models, transaction
 
-
 class CustomUser(AbstractUser):
     """
     A custom user model that extends Django's built-in AbstractUser model.
@@ -98,24 +97,21 @@ class EmailNotification(models.Model):
         # String representation includes notification type, user, and sent date
         return f"{self.notification_type} notification for {self.user.username} sent on {self.sent_date}"
 
-
-LeftRight = (
-    ("Left", ("Left")),
-    ("Right", ("Right")),
+LeftRight =(
+    ('Left', ('Left')),
+   ('Right', ('Right')),
 )
-
 
 class ChartOfAccounts(models.Model):
     """
     A model for storing chart of accounts in the database.
     This is the main database to be used in Sprint 2.
     """
-
     account_name = models.CharField(max_length=255, unique=True)
     account_number = models.PositiveIntegerField(unique=True)
     account_description = models.TextField()
     is_active = models.BooleanField(default=True)
-    normal_side = models.CharField(max_length=255, choices=LeftRight)
+    normal_side = models.CharField(max_length=255, choices = LeftRight)
     account_category = models.CharField(max_length=255)
     account_subcategory = models.CharField(max_length=255)
     initial_balance = models.DecimalField(max_digits=10, decimal_places=2)
@@ -130,49 +126,39 @@ class ChartOfAccounts(models.Model):
 
     def __str__(self):
         return self.account_name
-
+    
 
 class CoAEventLog(models.Model):
     """
     A model for storing chart of accounts event log in the database.
     """
-
     ACTION_CHOICES = [
-        ("added", "Added"),
-        ("modified", "Modified"),
-        ("deactivated", "Deactivated"),
+        ('added', 'Added'),
+        ('modified', 'Modified'),
+        ('deactivated', 'Deactivated'),
     ]
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     action = models.CharField(max_length=11, choices=ACTION_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)
-    before_change = models.TextField(
-        blank=True, null=True
-    )  # Stores the snapshot before change
-    after_change = models.TextField(
-        blank=True, null=True
-    )  # Stores the snapshot after change
-    chart_of_account = models.ForeignKey("ChartOfAccounts", on_delete=models.CASCADE)
+    before_change = models.TextField(blank=True, null=True)  # Stores the snapshot before change
+    after_change = models.TextField(blank=True, null=True)  # Stores the snapshot after change
+    chart_of_account = models.ForeignKey('ChartOfAccounts', on_delete=models.CASCADE)
 
     def __str__(self):
-        return (
-            f"{self.chart_of_account.account_name} - {self.action} - {self.timestamp}"
-        )
-
+        return f"{self.chart_of_account.account_name} - {self.action} - {self.timestamp}"
+    
 
 class ErrorMessages(models.Model):
     """
     A model for storing the custom error message to be diplayed throughout the COA, General Ledger, and Journal Entry pages
     This is to be used to help the user resolve their error.
     """
-
     error_code = models.CharField(max_length=100)
-    error_message = (
-        models.TextField()
-    )  # error message should tell the user the error AND how to resolve
+    error_message = models.TextField() #error message should tell the user the error AND how to resolve
 
     def __str__(self):
         return f"{self.error_code} - {self.error_message}"
-
+    
 
 class GeneralLedger(models.Model):
     """
@@ -180,30 +166,17 @@ class GeneralLedger(models.Model):
     The General Ledger will not be updated manually by the user but instead display everything directly from the table
     We want all the Journal Entry page approved additions to be displayed here only but all actually add are done in the Journal Entry page.
     """
-
-    account = models.ForeignKey(
-        "ChartOfAccounts",
-        on_delete=models.CASCADE,
-        related_name="general_ledger_entries",
-    )
-    journal_entry = models.ForeignKey(
-        "JournalEntry",
-        on_delete=models.CASCADE,
-        related_name="general_ledger_entries",
-        null=True,
-        blank=True,
-    )
+    account = models.ForeignKey('ChartOfAccounts', on_delete=models.CASCADE, related_name="general_ledger_entries")
+    journal_entry = models.ForeignKey('JournalEntry', on_delete=models.CASCADE, related_name="general_ledger_entries", null=True, blank=True)
     date_of_journal_entry = models.DateField()
     description = models.TextField()
     debit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    balance = models.DecimalField(
-        max_digits=10, decimal_places=2, editable=False
-    )  # Calculated field, not user-editable
+    balance = models.DecimalField(max_digits=10, decimal_places=2, editable=False)  # Calculated field, not user-editable
 
     def __str__(self):
         return f"{self.date_of_journal_entry} - {self.account.account_name} - {self.description}"
-
+    
 
 class JournalEntry(models.Model):
     """
@@ -211,37 +184,34 @@ class JournalEntry(models.Model):
     This one will be the most used and is already linked to Chart of Accounts and General Ledger.
     The accounts available here will only be those from the Chart of Accounts page.
     """
-
     STATUS_CHOICES = (
-        ("Pending", "Pending"),
-        ("Approved", "Approved"),
-        ("Denied", "Denied"),
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Denied', 'Denied'),
     )
-
+    
     date = models.DateField()
-    account = models.ForeignKey(
-        "ChartOfAccounts", on_delete=models.CASCADE, related_name="journal_entries"
-    )
+    account = models.ForeignKey('ChartOfAccounts', on_delete=models.CASCADE, related_name="journal_entries")
     debit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default="Pending")
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='Pending')
     comments = models.TextField(blank=True, null=True)
-
+    #attachement column, this will automatically add the files to a sub-directory called journal_entries inside the media file in the root
+    attachment = models.FileField(upload_to='journal_entries/', null=True, blank=True)
+    
     def approve(self):
-        if self.status == "Pending":
+        if self.status == 'Pending':
             with transaction.atomic():
-                self.status = "Approved"
+                self.status = 'Approved'
                 self.save()
-
+                
                 # Update the account balance in ChartOfAccounts
                 account = self.account
                 account.debit += self.debit
                 account.credit += self.credit
-                account.balance = (
-                    account.initial_balance + account.debit - account.credit
-                )
+                account.balance = account.initial_balance + account.debit - account.credit
                 account.save()
-
+                
                 # Create a corresponding entry in GeneralLedger
                 GeneralLedger.objects.create(
                     account=self.account,
@@ -252,6 +222,6 @@ class JournalEntry(models.Model):
                     credit=self.credit,
                     balance=account.balance,
                 )
-
+    
     def __str__(self):
         return f"{self.date} - {self.account.account_name} - Status: {self.status}"

@@ -1,4 +1,3 @@
-
 <!-- This is the page for THE chart of accounts -->
 {% extends "main_page/base.html" %}
 
@@ -7,7 +6,17 @@
     <div class="row">
         <h2 class="text-center">Chart of Accounts</h2>
     </div>
+
+    <div class="col text-end"> <!-- Align the button to the right -->
+        {% if request.user.is_superuser %}
+        <!-- Button to view log changes with space below -->
+        <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" style="margin-bottom: 20px;" title="view log changes">View Changes</a>
+        {% endif %}
+    </div>
     
+    <input type="date" id="date" style="margin-bottom: 20px;">
+
+
     <!-- table wrapper -->
     <div class="table-responsive">
         <!-- Chart of Accounts Table -->
@@ -71,12 +80,9 @@
 <div class="text-center mt-3 mb-5"> <!-- Center the buttons and add some top margin -->
     <!-- Add New Account Button but only for admins -->
     {% if is_admin %}
-    <a href="{% url 'add_account' %}" class="btn btn-success" style="margin-right: 20px" title="add new account" >Add New Account</a>
+    <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account" >Add New Account</a>
     {% endif %}
-    {% if request.user.is_superuser %}
-    <!-- Button to view log changes with space below -->
-    <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary"  title="view log changes">View Changes</a>
-    {% endif %}
+    
     <!-- Original Clear Search Button 
     <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2" title="clear current search">Clear Search</a>
     -->
@@ -90,28 +96,6 @@
     const datepicker = new Datepicker(document.getElementById('datepicker'), {
         // options if needed
     });
-</script>
-
-<script>
-    function thFunction() {
-     var input, filter, table, tr, td, i, txtValue;
-     input = document.getElementById("inpu");
-     filter = input.value.toUpperCase();
-     table = document.getElementById("table");
-     tr = table.getElementsByTagName("tr");
-      // search through table
-     for (i = 0; i < tr.length; i++) {
-       td = tr[i].getElementsByTagName("td")[0];
-       if (td) {
-         txtValue = td.textContent || td.innerText;
-         if (txtValue.toUpperCase().indexOf(filter) > -1) {
-           tr[i].style.display = "";
-         } else {
-           tr[i].style.display = "none";
-         }
-       }
-     }
-    }    
 </script>
 
 <!-- some custom styles to the table -->
