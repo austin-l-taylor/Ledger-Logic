@@ -29,6 +29,7 @@ from django.core.serializers import serialize
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 from django.db.models import Sum
+from django.db import transaction
 from django.contrib.auth.hashers import check_password
 
 
@@ -37,34 +38,43 @@ def serialize_account(instance):
     user = instance.user_id
 
     # Convert DateTimeField to ISO format
-    date_time_account_added = instance.date_time_account_added.isoformat() if instance.date_time_account_added else None
+    date_time_account_added = (
+        instance.date_time_account_added.isoformat()
+        if instance.date_time_account_added
+        else None
+    )
 
     # Construct a dictionary of fields to serialize
     serialized_data = {
-        'account_name': instance.account_name,
-        'account_number': instance.account_number,
-        'account_description': instance.account_description,
-        'is_active': instance.is_active,
-        'normal_side': instance.normal_side,
-        'account_category': instance.account_category,
-        'account_subcategory': instance.account_subcategory,
-        'initial_balance': float(instance.initial_balance) if instance.initial_balance is not None else None,
-        'debit': float(instance.debit) if instance.debit is not None else None,
-        'credit': float(instance.credit) if instance.credit is not None else None,
-        'balance': float(instance.balance) if instance.balance is not None else None,
-        'date_time_account_added': date_time_account_added,
-        'user_id': {
-            'id': user.id,
-            'username': user.username,
+        "account_name": instance.account_name,
+        "account_number": instance.account_number,
+        "account_description": instance.account_description,
+        "is_active": instance.is_active,
+        "normal_side": instance.normal_side,
+        "account_category": instance.account_category,
+        "account_subcategory": instance.account_subcategory,
+        "initial_balance": (
+            float(instance.initial_balance)
+            if instance.initial_balance is not None
+            else None
+        ),
+        "debit": float(instance.debit) if instance.debit is not None else None,
+        "credit": float(instance.credit) if instance.credit is not None else None,
+        "balance": float(instance.balance) if instance.balance is not None else None,
+        "date_time_account_added": date_time_account_added,
+        "user_id": {
+            "id": user.id,
+            "username": user.username,
         },
-        'order': instance.order,
-        'statement': instance.statement,
-        'comment': instance.comment,
+        "order": instance.order,
+        "statement": instance.statement,
+        "comment": instance.comment,
     }
 
     # Serialize data using Django's JSON encoder
     serialized_json = json.dumps(serialized_data, cls=DjangoJSONEncoder)
     return serialized_json
+
 
 from django.db.models import Q
 
@@ -339,9 +349,12 @@ def home(request):
     HttpResponse: The HTTP response. Renders the home page.
     """
     return render(request, "main_page/home.html", {})
+
+
 def help(request):
     """same as above but for the help page"""
     return render(request, "main_page/help.html", {})
+
 
 def is_staff_user(user):
     """
@@ -461,28 +474,31 @@ def edit_account(request, account_id):
     This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
-    
+
     if request.method == "POST":
         form = ChartOfAccountForm(request.POST, instance=account)
         if form.is_valid():
-            before_edit_snapshot = serialize_account(account)  # Serialize before making changes
+            before_edit_snapshot = serialize_account(
+                account
+            )  # Serialize before making changes
             form.save()
-            after_edit_snapshot = serialize_account(account)  # Serialize after saving changes
-            
+            after_edit_snapshot = serialize_account(
+                account
+            )  # Serialize after saving changes
+
             # Log the change
             CoAEventLog.objects.create(
                 user=request.user,
-                action='modified',
+                action="modified",
                 before_change=before_edit_snapshot,
                 after_change=after_edit_snapshot,
-                chart_of_account=account
+                chart_of_account=account,
             )
             messages.success(request, "Account updated successfully!")
             return redirect("chart_of_accounts")
     else:
         form = ChartOfAccountForm(instance=account)
     return render(request, "main_page/edit_coa_account.html", {"form": form})
-
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -494,28 +510,33 @@ def deactivate_account(request, account_id):
     account = get_object_or_404(ChartOfAccounts, id=account_id)
 
     # Check if the account has a balance greater than 0
-    balance = ChartOfAccounts.objects.filter(id=account_id).aggregate(Sum('balance'))['balance__sum']
+    balance = ChartOfAccounts.objects.filter(id=account_id).aggregate(Sum("balance"))[
+        "balance__sum"
+    ]
     if balance is not None and balance > 0:
-        messages.error(request, "Accounts with a balance greater than 0 cannot be deactivated.")
+        messages.error(
+            request, "Accounts with a balance greater than 0 cannot be deactivated."
+        )
         return redirect("chart_of_accounts")
 
-    before_change = serialize('json', [account])
-    
+    before_change = serialize("json", [account])
+
     account.is_active = False
     account.save()
-    
-    after_change = serialize('json', [account])
-    
+
+    after_change = serialize("json", [account])
+
     CoAEventLog.objects.create(
         user=request.user,
-        action='deactivated',
+        action="deactivated",
         before_change=before_change,
         after_change=after_change,
         timestamp=now(),
-        chart_of_account=account
+        chart_of_account=account,
     )
-    
+
     return redirect("chart_of_accounts")
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def activate_account(request, account_id):
@@ -525,24 +546,23 @@ def activate_account(request, account_id):
     This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
-    before_change = serialize('json', [account])
-    
+    before_change = serialize("json", [account])
+
     account.is_active = True
     account.save()
-    
-    after_change = serialize('json', [account])
-    
+
+    after_change = serialize("json", [account])
+
     CoAEventLog.objects.create(
         user=request.user,
-        action='activated',
+        action="activated",
         before_change=before_change,
         after_change=after_change,
         timestamp=now(),
-        chart_of_account=account
+        chart_of_account=account,
     )
-    
-    return redirect("chart_of_accounts")
 
+    return redirect("chart_of_accounts")
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -550,45 +570,49 @@ def view_coa_logs(request):
     """
     Definition that handles viewing the Chart of Accounts event logs.
 
-    This one is also handling the JSON serialization of the before and after changes. 
-    However, the JSON data is currently not showing correctly in the view_coa_logs.html page.
+    This one is also handling the JSON serialization of the before and after changes.
+    However, the JSON data is currently not correctly in the view_coa_logs.html page.
     This one needs to be fixed if we have time!!!!!!!!!!!!!!!!
 
     """
     # Fetch all log changes
     logs = CoAEventLog.objects.all()
-    
+
     # Serialize the before_change and after_change fields as JSON strings
     serialized_logs = []
     for log in logs:
         before_change = log.before_change
         after_change = log.after_change
-        
+
         # Parse JSON strings into Python objects
         before_change_data = json.loads(before_change) if before_change else None
         after_change_data = json.loads(after_change) if after_change else None
-        
-        serialized_logs.append({
-            'user': log.user.username,
-            'action': log.action,
-            'timestamp': log.timestamp,
-            'before_change': before_change_data,
-            'after_change': after_change_data,
-        })
 
-    return render(request, 'main_page/view_coa_logs.html', {'logs': serialized_logs})
+        serialized_logs.append(
+            {
+                "user": log.user.username,
+                "action": log.action,
+                "timestamp": log.timestamp,
+                "before_change": before_change_data,
+                "after_change": after_change_data,
+            }
+        )
+
+    return render(request, "main_page/view_coa_logs.html", {"logs": serialized_logs})
+
 
 def format_change_data(data):
     """
     This function formats the change data to a string.
     This is where we might be able to fix the issue with the JSON data not showing correctly in the view_coa_logs.html page.
     """
-    formatted_change = ''
+    formatted_change = ""
     for change in data:
-        fields = change.get('fields', {})
+        fields = change.get("fields", {})
         for key, value in fields.items():
             formatted_change += f"{key}: {value} ;"
     return formatted_change
+
 
 def journal_entry_page(request):
     """
@@ -597,4 +621,66 @@ def journal_entry_page(request):
     """
     journal_entries = JournalEntry.objects.all()
     is_admin = request.user.is_staff
-    return render(request, 'main_page/journal_entry_page.html', {'journal_entries': journal_entries, 'is_admin': is_admin})
+    return render(
+        request,
+        "main_page/journal_entry_page.html",
+        {"journal_entries": journal_entries, "is_admin": is_admin},
+    )
+
+
+def add_journal_entry(request):
+    if request.method == "POST":
+        # Extract data from form
+        account1_name = request.POST.get("account1")
+        debit1 = float(request.POST.get("debit1", 0))  # Default to 0 if not provided
+        credit1 = float(request.POST.get("credit1", 0))  # Default to 0 if not provided
+        date1 = request.POST.get("date1")
+        comments1 = request.POST.get("comments1")
+
+        account2_name = request.POST.get("account2")
+        debit2 = float(request.POST.get("debit2", 0))  # Default to 0 if not provided
+        credit2 = float(request.POST.get("credit2", 0))  # Default to 0 if not provided
+        date2 = request.POST.get("date2")
+        comments2 = request.POST.get("comments2")
+
+        try:
+            # Check if accounts exist in the Chart of Accounts
+            account1 = ChartOfAccounts.objects.get(account_name=account1_name)
+            account2 = ChartOfAccounts.objects.get(account_name=account2_name)
+
+            # Update debit and credit for account1
+            account1.debit += debit1
+            account1.credit += credit1
+            account1.save()
+
+            # Update debit and credit for account2
+            account2.debit += debit2
+            account2.credit += credit2
+            account2.save()
+
+            # Create the Journal Entries
+            JournalEntry.objects.create(
+                account=account1,
+                debit=debit1,
+                credit=credit1,
+                date=date1,
+                comments=comments1,
+            )
+            JournalEntry.objects.create(
+                account=account2,
+                debit=debit2,
+                credit=credit2,
+                date=date2,
+                comments=comments2,
+            )
+
+        except ChartOfAccounts.DoesNotExist:
+            # Handle the case where the account does not exist
+            messages.error(
+                request, "One or more accounts do not exist in the Chart of Accounts."
+            )
+            return render(request, "main_page/add_journal_entry_page.html")
+
+        return redirect("journal_entry_page")
+    else:
+        return render(request, "main_page/add_journal_entry_page.html")
