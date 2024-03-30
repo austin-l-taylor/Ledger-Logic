@@ -615,17 +615,29 @@ def format_change_data(data):
 
 
 def journal_entry_page(request):
-    """
-    This function defines the main Journal Entry Page
-    This page displays all of the data from the database table JournalEntry
-    """
-    journal_entries = JournalEntry.objects.all()
-    is_admin = request.user.is_staff
-    return render(
-        request,
-        "main_page/journal_entry_page.html",
-        {"journal_entries": journal_entries, "is_admin": is_admin},
-    )
+    if request.method == "POST":
+        if "approve" in request.POST:
+            entry_id = request.POST.get("entry_id")
+            entry = JournalEntry.objects.get(id=entry_id)
+            entry.status = "Approved"  # Adjust the status based on your model
+            entry.save()
+
+        elif "reject" in request.POST:
+            entry_id = request.POST.get("entry_id")
+            entry = JournalEntry.objects.get(id=entry_id)
+            entry.status = "Rejected"  # Adjust the status based on your model
+            entry.save()
+
+        return redirect("journal_entry_page")
+
+    else:
+        journal_entries = JournalEntry.objects.all()
+        is_admin = request.user.is_staff
+        return render(
+            request,
+            "main_page/journal_entry_page.html",
+            {"journal_entries": journal_entries, "is_admin": is_admin},
+        )
 
 
 def add_journal_entry(request):
@@ -636,12 +648,14 @@ def add_journal_entry(request):
         credit1 = Decimal(request.POST.get("credit1", 0))
         date1 = request.POST.get("date1")
         comments1 = request.POST.get("comments1")
+        attachment1 = request.FILES.get("attachment1")
 
         account2_name = request.POST.get("account2")
         debit2 = Decimal(request.POST.get("debit2", 0))
         credit2 = Decimal(request.POST.get("credit2", 0))
         date2 = request.POST.get("date2")
         comments2 = request.POST.get("comments2")
+        attachment2 = request.FILES.get("attachment2")
 
         try:
             # Check if accounts exist in the Chart of Accounts
@@ -665,7 +679,8 @@ def add_journal_entry(request):
                 credit=credit1,
                 date=date1,
                 comments=comments1,
-                status="Approved",
+                attachment=attachment1,
+                status="Pending",
             )
             JournalEntry.objects.create(
                 account=account2,
@@ -673,7 +688,8 @@ def add_journal_entry(request):
                 credit=credit2,
                 date=date2,
                 comments=comments2,
-                status="Approved",
+                attachment=attachment2,
+                status="Pending",
             )
 
         except ChartOfAccounts.DoesNotExist:

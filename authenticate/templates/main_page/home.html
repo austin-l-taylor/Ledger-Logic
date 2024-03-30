@@ -2,10 +2,39 @@
 
 {% block content %}
 
-<h1>Welcome to Ledger Logic, {{user.username}}</h1>
- 
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4">Welcome to Ledger Logic</h1>
+            <p class="lead mt-3">Empowering Financial Management</p>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <h2>Hello, {{ user.username }}!</h2>
+            <p>Explore the comprehensive features tailored for seamless financial tracking and management.</p>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
+
+<style>
+    body {
+        background-color: #f4f4f4; /* Soft background color */
+    }
+    .btn-lg {
+        padding: 1rem 2rem; /* Larger buttons */
+        margin: 0.5rem;
+    }
+    .display-4 {
+        font-weight: bold; /* Bold title */
+        color: #23395d; /* Stylish text color */
+    }
+    .lead {
+        font-size: 1.5rem; /* Larger subtitle */
+    }
+</style>
 
 
       
