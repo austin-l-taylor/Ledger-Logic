@@ -8,18 +8,17 @@
     <title>Document</title>
     <style>
         .navbar-brand {
-            margin-right: 45px; /* Adjust the margin between the LegderLogic brand and toggle button */
+            margin-right: 45px; /* Adjust the margin between the LedgerLogic brand and toggle button */
         }
         .navbar-nav .nav-link {
             padding: 0.5rem 1rem; /* Padding for a clickable navbar button */
-            margin-right: 10px; /* margin between navbar buttons */
+            margin-right: 10px; /* Margin between navbar buttons */
             border-radius: 5px; /* Round the corners of the buttons*/
             transition: background-color 0.3s ease; /* Smooth transition for hover effect */
         }
         .navbar-nav .nav-link.functions {
-            margin-right: 30px; /* margin between logout and chart of accounts */
-            background-color: #0d6efd; /* background color for chart of accounts - this class could be changed for future buttons*/
-            color: #fff; /* button text color */
+            background-color: #0d6efd; /* Background color for Chart of Accounts - this class could be changed for future buttons */
+            color: #fff; /* Button text color */
         }
         .navbar-nav .nav-link.functions:hover {
             background-color: #0b5ed7; /* Dark background color on hover for buttons */
@@ -32,6 +31,14 @@
             margin-left: 10px; /* Adjust margin to separate from logout button */
             width: 55px;
             height: 55px;
+        }
+        .nav-center {
+            display: flex; /* Enable flex layout */
+            justify-content: center; /* Center items horizontally */
+            flex-grow: 1; /* Allow the container to take up all available space */
+        }
+        .nav-center .nav-item {
+            margin: 0 10px; /* Provide even spacing between items */
         }
     </style>
 </head>
@@ -46,18 +53,24 @@
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    
+                    <!-- Empty left space -->
                 </ul>
 
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <!--navigation links validated depending on user auhtnetication, you can add more here for navigation -->
+                <!-- Centered Navbar Items -->
+                <ul class="navbar-nav nav-center mb-2 mb-lg-0">
                     {% if user.is_authenticated %}
                         <li class="nav-item" title="see journal entries">
-                            <a class="nav-link functions" href="{% url 'journal_entry_page' %}">Journal Entries</a>
+                            <a class="nav-link" href="{% url 'journal_entry_page' %}">Journal Entries</a> <!-- Removed 'functions' class -->
                         </li>
                         <li class="nav-item" title="see all accounts">
-                            <a class="nav-link functions" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a>
+                            <a class="nav-link" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a> <!-- Removed 'functions' class -->
                         </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Right Aligned Navbar Items -->
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
                         <li class="nav-item" title="get help">
                             <a class="nav-link" href="{% url 'help' %}">Help?</a>
                         </li>
