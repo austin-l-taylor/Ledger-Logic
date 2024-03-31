@@ -1,8 +1,8 @@
+
 <!-- This is the Journal Entry Page. Currently it is empty.
 Once you implement the Add New Entry form and page and begin adding entries
 to the database table it will show the table on this page. 
 The Add Journal Entry button below should direct to your new Add Journal Entry Page (LED-51)-->
-
 {% extends "main_page/base.html" %}
 {% load humanize %}
 
@@ -35,9 +35,25 @@ The Add Journal Entry button below should direct to your new Add Journal Entry P
                     <td>{{ entry.status }}</td>
                     <td>
                         {% if is_admin %}
-                            <!-- Placeholder buttons that currently do nothing -->
-                            <button class="btn btn-sm btn-success" disabled>Approve</button>
-                            <button class="btn btn-sm btn-danger" disabled>Reject</button>
+                            {% if entry.status == 'Pending' %}
+                                <!-- Approve Button -->
+                                <form action="{% url 'journal_entry_page' %}" method="post" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="entry_id" value="{{ entry.id }}">
+                                    <button type="submit" name="approve" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+            
+                                <!-- Reject Button -->
+                                <form action="{% url 'journal_entry_page' %}" method="post" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="entry_id" value="{{ entry.id }}">
+                                    <button type="submit" name="reject" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
+                            {% elif entry.status == 'Approved' %}
+                                Approved
+                            {% elif entry.status == 'Rejected' %}
+                                Rejected
+                            {% endif %}
                         {% endif %}
                     </td>
                 </tr>
@@ -52,7 +68,6 @@ The Add Journal Entry button below should direct to your new Add Journal Entry P
     {% endif %}
 
     <div class="text-center mt-3 mb-5">
-        <a href="#" class="btn btn-success" title="add new entry">Add Journal Entry</a>
+        <a href="{% url 'add_journal_entry' %}" class="btn btn-success" title="add new account" >New Journal Entry</a>
     </div>
-</div>
 {% endblock %}

@@ -7,15 +7,7 @@
         <h2 class="text-center">Chart of Accounts</h2>
     </div>
 
-    <div class="col text-end"> <!-- Align the button to the right -->
-        {% if request.user.is_superuser %}
-        <!-- Button to view log changes with space below -->
-        <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" style="margin-bottom: 20px;" title="view log changes">View Changes</a>
-        {% endif %}
-    </div>
-    
     <input type="date" id="date" style="margin-bottom: 20px;">
-
 
     <!-- table wrapper -->
     <div class="table-responsive">
@@ -81,6 +73,7 @@
     <!-- Add New Account Button but only for admins -->
     {% if is_admin %}
     <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account" >Add New Account</a>
+    <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" title="view log changes">View Changes</a>
     {% endif %}
     
     <!-- Original Clear Search Button 
