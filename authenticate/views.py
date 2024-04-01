@@ -35,14 +35,19 @@ from decimal import Decimal
 
 
 def ledger(request, account_id):
-    """
-    This function is used to render the ledger page.
-    """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
     
-    # Filter journal entries related to the account
-    journal_entries = JournalEntry.objects.filter(account=account)
+    # Filter journal entries by account and order by date
+    journal_entries = JournalEntry.objects.filter(account=account).order_by('date')
     
+    initial_balance = account.initial_balance
+    current_balance = initial_balance
+
+    for entry in journal_entries:
+        # Calculate the balance for each entry
+        entry.balance = current_balance + entry.debit - entry.credit
+        current_balance = entry.balance
+
     return render(request, "main_page/ledger.html", {"journal_entries": journal_entries, "account": account})
 
 
