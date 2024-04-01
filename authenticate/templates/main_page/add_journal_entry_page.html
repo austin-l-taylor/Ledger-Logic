@@ -57,6 +57,14 @@ $(document).ready(function() {
         <div class="text-center mt-3 mb-5">
             <button type="submit" class="btn btn-success">Submit</button>
         </div>
+         {% for error in field.errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endfor %}
+        <div class="text-center mt-3 mb-5">
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
     </form>
 </div>
 
