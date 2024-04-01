@@ -12,12 +12,11 @@ from .forms import (
     EmailForm,
     ChartOfAccountForm,
 )
-from .models import CustomUser, ChartOfAccounts, CoAEventLog, JournalEntry
+from .models import CustomUser, ChartOfAccounts, CoAEventLog, JournalEntry, GeneralLedger
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.template.loader import get_template
+from django.template.loader import render_to_string , get_template
 from django.template import Context
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -31,6 +30,20 @@ import json
 from django.db.models import Sum
 from django.contrib.auth.hashers import check_password
 from decimal import Decimal
+
+
+
+
+def ledger(request, account_id):
+    """
+    This function is used to render the ledger page.
+    """
+    account = get_object_or_404(ChartOfAccounts, id=account_id)
+    
+    # Filter journal entries related to the account
+    journal_entries = JournalEntry.objects.filter(account=account)
+    
+    return render(request, "main_page/ledger.html", {"journal_entries": journal_entries, "account": account})
 
 
 def serialize_account(instance):
@@ -438,12 +451,7 @@ def chart_of_accounts(request):
     return render(request, "main_page/chart_of_accounts.html", context)
 
 
-def ledger(request, account_id):
-    """
-    This function is used to render the ledger page.
-    """
-    account = get_object_or_404(ChartOfAccounts, id=account_id)
-    return render(request, "main_page/ledger.html", {"account": account})
+
 
 
 @user_passes_test(lambda u: u.is_superuser)
