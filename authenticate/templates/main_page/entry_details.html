@@ -17,7 +17,6 @@
                     <th>Debit</th>
                     <th>Credit</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,29 +26,7 @@
                     <td>{{ journal_entry.debit|intcomma }}</td>
                     <td>{{ journal_entry.credit|intcomma }}</td>
                     <td>{{ journal_entry.status }}</td>
-                    <td>
-                        {% if is_admin %}
-                            {% if journal_entry.status == 'Pending' %}
-                                <!-- Approve Button -->
-                                <form action="{% url 'journal_entry_page' %}" method="post" style="display: inline-block;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="entry_id" value="{{ journal_entry.id }}">
-                                    <button type="submit" name="approve" class="btn btn-sm btn-success">Approve</button>
-                                </form>
-                            
-                                <!-- Reject Button -->
-                                <form action="{% url 'journal_entry_page' %}" method="post" style="display: inline-block;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="entry_id" value="{{ journal_entry.id }}">
-                                    <button type="submit" name="reject" class="btn btn-sm btn-danger">Reject</button>
-                                </form>
-                            {% elif journal_entry.status == 'Approved' %}
-                                Approved
-                            {% elif journal_entry.status == 'Rejected' %}
-                                Rejected
-                            {% endif %}
-                        {% endif %}
-                    </td>
+                   
                 </tr>
             </tbody>
         </table>
