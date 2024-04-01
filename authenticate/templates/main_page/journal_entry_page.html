@@ -70,4 +70,26 @@ The Add Journal Entry button below should direct to your new Add Journal Entry P
     <div class="text-center mt-3 mb-5">
         <a href="{% url 'add_journal_entry' %}" class="btn btn-success" title="add new account" >New Journal Entry</a>
     </div>
+     <script>
+        function thFunction() {
+         var input, filter, table, tr, td, i, txtValue;
+         input = document.getElementById("inpu");
+         filter = input.value.toUpperCase();
+         table = document.getElementById("table");
+         tr = table.getElementsByTagName("tr");
+          // search through table
+         for (i = 0; i < tr.length; i++) {
+           td = tr[i].getElementsByTagName("td")[0];
+           if (td) {
+             txtValue = td.textContent || td.innerText;
+             if (txtValue.toUpperCase().indexOf(filter) > -1) {
+               tr[i].style.display = "";
+             } else {
+               tr[i].style.display = "none";
+             }
+           }
+         }
+        }
+    
+        </script>
 {% endblock %}
