@@ -32,7 +32,32 @@ from django.contrib.auth.hashers import check_password
 from decimal import Decimal
 
 
+def entry_details(request, entry_id):
+    if request.method == "POST":
+        if "approve" in request.POST:
+            entry_id = request.POST.get("entry_id")
+            entry = JournalEntry.objects.get(id=entry_id)
+            entry.status = "Approved"  # Adjust the status based on your model
+            entry.save()
 
+        elif "reject" in request.POST:
+            entry_id = request.POST.get("entry_id")
+            entry = JournalEntry.objects.get(id=entry_id)
+            entry.status = "Rejected"  # Adjust the status based on your model
+            entry.save()
+
+        return redirect("entry_details")
+
+    else:
+        journal_entries = JournalEntry.objects.all()
+        is_admin = request.user.is_staff
+        return render(
+            request,
+            "main_page/entry_details.html",
+            {"journal_entries": journal_entries, "is_admin": is_admin},
+        )
+
+    
 
 def ledger(request, account_id):
     account = get_object_or_404(ChartOfAccounts, id=account_id)
