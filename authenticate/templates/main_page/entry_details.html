@@ -3,7 +3,6 @@
 
 {% block content %}
 <div class="container mt-4">
-    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back to Chart of Accounts</a>
     <div class="row">
         <h2 class="mb-4 text-center">Journal Entry Detail</h2>
     </div>
@@ -31,6 +30,15 @@
             </tbody>
         </table>
     </div>
+    <div class="row justify-content-center">
+        <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3 custom-back-btn" title="go back">Back to Chart of Accounts</a>
+    </div>
+    <style>
+        .custom-back-btn {
+            max-width: 225px; /* Adjust the max-width as needed */
+            width: 100%;
+        }
+    </style>
 </div>
 <style>
     .thead-dark th {
