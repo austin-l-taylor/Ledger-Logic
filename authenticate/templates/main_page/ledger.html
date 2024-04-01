@@ -24,7 +24,7 @@
                 {% for entry in journal_entries %}
                 <tr class="clickable-row" data-href="{% url 'entry_details' entry.id %}">
                     <td>{{ entry.date }}</td>
-                    <td>{{ entry.comments }}</td>
+                    <td>{{ Description }}</td>
                     <td>{{ entry.debit }}</td>
                     <td>{{ entry.credit }}</td>
                     <td>{{ entry.balance }}</td>
