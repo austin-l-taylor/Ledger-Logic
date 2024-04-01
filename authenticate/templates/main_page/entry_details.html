@@ -1,0 +1,78 @@
+{% extends "main_page/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back to Chart of Accounts</a>
+    <div class="row">
+        <h2 class="mb-4 text-center">Journal Entry Detail</h2>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Account</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ journal_entry.date }}</td>
+                    <td>{{ journal_entry.account.account_name }}</td>
+                    <td>{{ journal_entry.debit|intcomma }}</td>
+                    <td>{{ journal_entry.credit|intcomma }}</td>
+                    <td>{{ journal_entry.status }}</td>
+                    <td>
+                        {% if is_admin %}
+                            {% if journal_entry.status == 'Pending' %}
+                                <!-- Approve Button -->
+                                <form action="{% url 'journal_entry_page' %}" method="post" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="entry_id" value="{{ journal_entry.id }}">
+                                    <button type="submit" name="approve" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                            
+                                <!-- Reject Button -->
+                                <form action="{% url 'journal_entry_page' %}" method="post" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="entry_id" value="{{ journal_entry.id }}">
+                                    <button type="submit" name="reject" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
+                            {% elif journal_entry.status == 'Approved' %}
+                                Approved
+                            {% elif journal_entry.status == 'Rejected' %}
+                                Rejected
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<style>
+    .thead-dark th {
+        background-color: #23395D; /* Dark table header background */
+        color: white; /* White text color */
+        padding: 5px; /* Smaller padding due to screen sizes*/
+        font-size: 0.85rem; /* Smaller font size */
+    }
+    
+    th {
+        white-space: nowrap; /* Prevent text in headers from wrapping */
+    }
+
+    .clickable-row {
+        cursor: pointer;
+    }
+
+    .clickable-row:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+{% endblock %}
