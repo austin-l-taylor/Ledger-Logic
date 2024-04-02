@@ -1,0 +1,18 @@
+{% autoescape off%}
+Hi Admin, 
+
+A new journal entry has been posted!
+Account name: {{account1Name}} 
+Account credit: {{account1Credit}} | Account debit: {{account1Debit}}
+Comments: {{account1|default:"No comments were added."}}
+______________________________________________________________________________
+Account name: {{account2Name}}
+Account credit: {{account2Credit}} | Account debit: {{account2Debit}}
+Comments: {{account2|default:"No comments were added."}}
+
+
+Please login to the admin portal to approve or deny the journal entry. 
+http://{{domain}}
+
+
+{% endautoescape %}

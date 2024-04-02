@@ -195,7 +195,7 @@ class JournalEntry(models.Model):
     debit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='Pending')
-    comments = models.TextField(blank=True, null=True)
+    comments = models.TextField()
     #attachement column, this will automatically add the files to a sub-directory called journal_entries inside the media file in the root
     attachment = models.FileField(upload_to='journal_entries/', null=True, blank=True)
     

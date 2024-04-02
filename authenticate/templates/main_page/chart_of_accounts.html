@@ -1,7 +1,8 @@
 <!-- This is the page for THE chart of accounts -->
 {% extends "main_page/base.html" %}
 
-{% block content %}
+{%block content%}
+{% block top %}
 <div class="container mt-4">
     <div class="row">
         <h2 class="text-center">Chart of Accounts</h2>
@@ -67,7 +68,6 @@
     </div>
 </div>
 
-
 <!-- Buttons at the bottom of the Chart of Accounts -->
 <div class="text-center mt-3 mb-5"> <!-- Center the buttons and add some top margin -->
     <!-- Add New Account Button but only for admins -->
@@ -75,11 +75,11 @@
     <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account" >Add New Account</a>
     <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" title="view log changes">View Changes</a>
     {% endif %}
-    
     <!-- Original Clear Search Button 
     <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2" title="clear current search">Clear Search</a>
     -->
 </div>
+
 
 <!-- Include datepicker.js -->
 <script src="https://cdn.jsdelivr.net/npm/datepicker.js"></script>
@@ -104,5 +104,9 @@
         white-space: nowrap; /* Prevent text in headers from wrapping */
     }
 </style>
+{% endblock %}
 
+    {%block bot%}
+        {% include "main_page/contact.html" %}
+    {% endblock %}
 {% endblock %}

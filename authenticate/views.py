@@ -11,6 +11,9 @@ from .forms import (
     ForgotPasswordForm,
     EmailForm,
     ChartOfAccountForm,
+    ContactForm,
+    ContactFormAdmin,
+    CommentForm,
 )
 from .models import CustomUser, ChartOfAccounts, CoAEventLog, JournalEntry
 from django.conf import settings
@@ -31,6 +34,8 @@ import json
 from django.db.models import Sum
 from django.contrib.auth.hashers import check_password
 from decimal import Decimal
+from django.views.generic.edit import FormView
+from django.http import HttpResponse, HttpResponseRedirect
 
 
 def serialize_account(instance):
@@ -413,6 +418,10 @@ def chart_of_accounts(request):
     """
     query = request.GET.get("q")
     is_admin = request.user.is_superuser  # Determine if the user is an admin
+    if is_admin:
+        formSelection = ContactFormAdmin
+    else:
+        formSelection = ContactForm
     selected_account = request.GET.get("selected_account")
     if selected_account:
         return redirect("ledger", account_id=selected_account)
@@ -429,11 +438,40 @@ def chart_of_accounts(request):
         accounts = ChartOfAccounts.objects.all().order_by(
             "order",
         )  # Fetch all accounts, ordered by 'order'
+    
+    if request.method == "POST":
+        if request.user.is_superuser:
+            #Email to User
+            form = ContactFormAdmin(request.POST)
+        else:
+            #Email to Admin
+            form = ContactForm(request.POST)
 
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            To = form.cleaned_data.get("To")
+            subject = form.cleaned_data.get("subject")
+            message = form.cleaned_data.get("message")
+            full_message = f"""
+  		        {email} has submitted an email to the Admins.
+		        Subject: {subject}
+		        Message: {message}
+
+
+                """
+            send_mail(
+                subject=subject,
+                message=full_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[To],
+            )
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
     # Pass the accounts and is_admin flag to the template
     context = {
         "accounts": accounts,
         "is_admin": is_admin,
+        "form":formSelection,
     }
     return render(request, "main_page/chart_of_accounts.html", context)
 
@@ -619,12 +657,14 @@ def journal_entry_page(request):
         if "approve" in request.POST:
             entry_id = request.POST.get("entry_id")
             entry = JournalEntry.objects.get(id=entry_id)
+            add_comment(request, entry_id)
             entry.status = "Approved"  # Adjust the status based on your model
             entry.save()
 
         elif "reject" in request.POST:
             entry_id = request.POST.get("entry_id")
             entry = JournalEntry.objects.get(id=entry_id)
+            add_comment(request, entry_id)
             entry.status = "Rejected"  # Adjust the status based on your model
             entry.save()
 
@@ -691,14 +731,68 @@ def add_journal_entry(request):
                 attachment=attachment2,
                 status="Pending",
             )
-
+            
         except ChartOfAccounts.DoesNotExist:
             # Handle the case where the account does not exist
             messages.error(
                 request, "One or more accounts do not exist in the Chart of Accounts."
             )
             return render(request, "main_page/add_journal_entry_page.html")
-
+        journalEntryEmail(request, account1, debit1, credit1, comments1, account2, debit1, debit2, comments2)
         return redirect("journal_entry_page")
     else:
         return render(request, "main_page/add_journal_entry_page.html")
+
+def add_comment(request, entry_id):
+    entry = JournalEntry.objects.get(id=entry_id)
+    form = CommentForm()
+
+    context = {
+        'form': form
+    }
+    return redirect("journal_entry_page")
+
+def journalEntryEmail(request, account1Name, acct1debit, acct1credit, account1, account2Name, acct2debit, acct2credit, account2 ):
+    mail_subject = "A new journal entry has been posted to your site."
+    message = render_to_string(
+        "journalEntryEmail.html",
+        {
+            "account1Name": account1Name,
+            "account1Debit":acct1debit,
+            "account1Credit":acct1credit,
+            "account1": account1,
+            "account2Name": account2Name,
+            "account2Debit":acct2debit,
+            "account2Credit":acct2credit,
+            "account2": account2,
+            "domain": get_current_site(request).domain,
+        },
+    )
+    email = EmailMultiAlternatives(
+        mail_subject, message, to=["myin1@students.kennesaw.edu"]
+    )
+    email.send()
+
+
+def email(request, email, subject, message):
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            message = form.cleaned_data.get("message")
+
+            full_message = f"""
+                Received message below from {email}, {subject}
+                ________________________
+
+
+                {message}
+                """
+            send_mail(
+                subject="Received contact form submission",
+                message=full_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=["myin1@students.kennesaw.edu"],
+            )
+    return render(request, "main_page/contact.html", {"form": form})
