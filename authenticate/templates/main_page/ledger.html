@@ -1,13 +1,15 @@
 {% extends "main_page/base.html" %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-4">
-    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3" title="go back">Back</a>
-    <h2 class="text-center">Ledger Page</h2>
-
-    <!-- Ledger Table -->
+    <div class="row">
+        <h2 class="mb-4 text-center">Ledger Detail - {{ account.account_name }}</h2>
+    </div>
+    
+    {% if journal_entries %}
     <div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered">
+        <table id="ledgerTable" class="table table-striped table-hover table-bordered">
             <thead class="thead-dark">
                 <tr>
                     <th>Date</th>
@@ -18,29 +20,102 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>2022-01-01</td>
-                    <td>Opening balance</td>
-                    <td>1000.00</td>
-                    <td>0.00</td>
-                    <td>1000.00</td>
+                {% for entry in journal_entries %}
+                <tr class="clickable-row" data-href="{% url 'entry_details' entry.id %}">
+                    <td>{{ entry.date }}</td>
+                    <td>{{ Description }}</td>
+                    <td>{{ entry.debit }}</td>
+                    <td>{{ entry.credit }}</td>
+                    <td>{{ entry.balance }}</td>
                 </tr>
-                <tr>
-                    <td>2022-01-02</td>
-                    <td>Purchase of office supplies</td>
-                    <td>200.00</td>
-                    <td>0.00</td>
-                    <td>800.00</td>
-                </tr>
-                <tr>
-                    <td>2022-01-03</td>
-                    <td>Sale of goods</td>
-                    <td>0.00</td>
-                    <td>500.00</td>
-                    <td>1300.00</td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="text-center mt-3 mb-5">
+        <p>No Ledger Details found.</p>
+    </div>
+    {% endif %}
+    
+    <div class="row justify-content-center">
+        <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary mb-3 custom-back-btn" title="go back">Back to Chart of Accounts</a>
+    </div>
+    <style>
+        .custom-back-btn {
+            max-width: 225px; /* Adjust the max-width as needed */
+            width: 100%;
+        }
+    </style>
 </div>
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#ledgerTable').DataTable({
+            "paging": true,      // Enable pagination
+            "searching": true,   // Enable search box
+            "lengthChange": true,// Enable length change
+            "pageLength": 10,    // Default page length
+            "order": [],         // Initial order (optional)
+            "columnDefs": [      // Column definitions for searchability
+                {
+                    "targets": [0, 1, 2, 3],  // Apply to Date, Description, Debit, Credit columns
+                    "searchable": true
+                },
+                {
+                    "targets": [4],  // Apply to Balance column
+                    "searchable": false
+                }
+            ],
+            "language": {  // Customization of text
+                "lengthMenu": "Show _MENU_ entries",
+                "search": "Search:",
+                "paginate": {
+                    "previous": "Previous",
+                    "next": "Next"
+                },
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries"
+            }
+        });
+
+        // Handle row click event
+        $('#ledgerTable tbody').on('click', 'tr', function () {
+            var url = $(this).data('href');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+</script>
+<style>
+    .thead-dark th {
+        background-color: #23395D; /* Dark table header background */
+        color: white; /* White text color */
+        padding: 5px; /* Smaller padding due to screen sizes*/
+        font-size: 0.85rem; /* Smaller font size */
+    }
+    
+    th {
+        white-space: nowrap; /* Prevent text in headers from wrapping */
+    }
+
+    .clickable-row {
+        cursor: pointer;
+    }
+
+    .clickable-row:hover {
+        background-color: #f5f5f5;
+    }
+</style>
 {% endblock %}
+
+

@@ -34,26 +34,31 @@ $(document).ready(function() {
                 <tbody>
                     <!-- First Journal Entry Row -->
                     <tr>
-                        <td><input type="text" name="account1" class="form-control" placeholder="Account"></td>
-                        <td><input type="number" name="debit1" class="form-control" placeholder="Debit"></td>
-                        <td><input type="number" name="credit1" class="form-control" placeholder="Credit"></td>
-                        <td><input type="date" name="date1" class="form-control"></td>
+                        <td><input type="text" name="account1" class="form-control" value = "" placeholder="Account"></td>
+                        <td><input type="number" name="debit1" class="form-control" value = 0 placeholder="Debit"></td>
+                        <td><input type="number" name="credit1" class="form-control" value = 0 placeholder="Credit"></td>
+                        <td><input type="date" name="date1" class="form-control"value="{% now "Y-m-d" %}"></td>
                         <td><input type="text" name="comments1" class="form-control" placeholder="Comments"></td>
                         <td><input type="file" name="attachment1" class="form-control"></td>
                     </tr>
                     <!-- Second Journal Entry Row -->
                     <tr>
-                        <td><input type="text" name="account2" class="form-control" placeholder="Account"></td>
-                        <td><input type="number" name="debit2" class="form-control" placeholder="Debit"></td>
-                        <td><input type="number" name="credit2" class="form-control" placeholder="Credit"></td>
-                        <td><input type="date" name="date2" class="form-control"></td>
+                        <td><input type="text" name="account2" class="form-control" value = "" placeholder="Account"></td>
+                        <td><input type="number" name="debit2" class="form-control" value = 0 placeholder="Debit"></td>
+                        <td><input type="number" name="credit2" class="form-control" value = 0 placeholder="Credit"></td>
+                        <td><input type="date" name="date2" class="form-control"value="{% now "Y-m-d" %}"></td>
                         <td><input type="text" name="comments2" class="form-control" placeholder="Comments"></td>
                         <td><input type="file" name="attachment2" class="form-control"></td> 
                     </tr>
                 </tbody>
             </table>
         </div>
-
+        {% for error in field.errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endfor %}
+        
         <div class="text-center mt-3 mb-5">
             <button type="submit" class="btn btn-success">Submit</button>
         </div>
