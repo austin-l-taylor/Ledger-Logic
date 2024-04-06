@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,8 +14,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 ALLOWED_HOSTS = ['*','localhost', '127.0.0.1', '::1']
+
 
 HEROKU_HOSTNAME = os.environ.get('HEROKU_HOSTNAME')
 if HEROKU_HOSTNAME:
@@ -94,11 +97,7 @@ load_dotenv()
 import dj_database_url
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
 
 
