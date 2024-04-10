@@ -1,83 +1,90 @@
 <!-- This is the page for THE chart of accounts -->
 {% extends "main_page/base.html" %}
 
-{% block content %}
+{%block content%}
 <body>
     <button id="popout-btn">Send Email</button>
 
-    <!-- Pop-Out Bar Container (initially hidden) -->
-    <div id="popout-container" class="popout-container">
-        <button id="close-popout-btn">&times;</button> 
-        {% include 'main_page/contact.html' %}
-    </div>
-</body>
+<!-- Pop-Out Bar Container (initially hidden) -->
+<div id="popout-container" class="popout-container">
+    <button id="close-popout-btn">&times;</button> 
+    {% include 'main_page/contact.html' %}
+</div>
 
+</body>
 <div class="container mt-4">
     <div class="row">
         <h2 class="text-center">Chart of Accounts</h2>
     </div>
 
     <!-- table wrapper -->
-    <!-- Chart of Accounts Table -->
-    <table id="table" class="table table-striped table-hover table-bordered">
-        <thead class="thead-dark">
-            <tr>
-                <th>Account Name</th>
-                <th>Account Number</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Subcategory</th>
-                <th>Normal Side</th>
-                <th>Initial Balance</th>
-                <th>Debit</th>
-                <th>Credit</th>
-                <th>Balance</th>
-                <th>Date Added</th>
-                <th>Comments</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for account in accounts %}
-            <tr>
-                {% load humanize %} 
-                <td><a href="{% url 'ledger' account.id %}" title="click to see account info">{{ account.account_name }}</a></td>
-                <td>{{ account.account_number }}</td>
-                <td>{{ account.account_description }}</td>
-                <td>{{ account.account_category }}</td>
-                <td>{{ account.account_subcategory }}</td>
-                <td>{{ account.normal_side }}</td>
-                <td>{{ account.initial_balance|intcomma }}</td>
-                <td>{{ account.debit|intcomma }}</td>
-                <td>{{ account.credit|intcomma }}</td>
-                <td>{{ account.balance|intcomma }}</td>
-                <td>{{ account.date_time_account_added }}</td>
-                <td>{{ account.comment }}</td>
-                <td>{{ account.is_active|yesno:"Active,Inactive" }}</td>
-                <td>
-                    <a href="{% url 'edit_account' account.id %}" title="edit account">Edit</a> |
-                    {% if account.is_active %}
-                        <a href="{% url 'deactivate_account' account.id %}">Deactivate</a>
-                    {% else %}
-                        <a href="{% url 'activate_account' account.id %}">Activate</a>
+        <!-- Chart of Accounts Table -->
+        <table id="table" class="table table-striped table-hover table-bordered">
+            <thead  class="thead-dark">
+                <tr>
+                    <th>Account Name</th>
+                    <th>Account Number</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Subcategory</th>
+                    <th>Normal Side</th>
+                    <th>Initial Balance</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Balance</th>
+                    <th>Date Added</th>
+                    <th>Comments</th>
+                    <th>Status</th>
+                    {% if is_admin %}
+                    <th>Actions</th>
                     {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    {% load humanize %} 
+                    <td><a href="{% url 'ledger' account.id %}" title="click to see account info">{{ account.account_name }}</a></td>
+                    <td>{{ account.account_number }}</td>
+                    <td>{{ account.account_description }}</td>
+                    <td>{{ account.account_category }}</td>
+                    <td>{{ account.account_subcategory }}</td>
+                    <td>{{ account.normal_side }}</td>
+                    <td>{{ account.initial_balance|intcomma }}</td>
+                    <td>{{ account.debit|intcomma }}</td>
+                    <td>{{ account.credit|intcomma }}</td>
+                    <td>{{ account.balance|intcomma }}</td>
+                    <td>{{ account.date_time_account_added }}</td>
+                    <td>{{ account.comment }}</td>
+                    <td>{{ account.is_active|yesno:"Active,Inactive" }}</td>
+                    {% if is_admin %}
+                    <td>
+                        <a href="{% url 'edit_account' account.id %}" title="edit account">Edit</a> |
+                        {% if account.is_active %}
+                            <a href="{% url 'deactivate_account' account.id %}">Deactivate</a>
+                        {% else %}
+                            <a href="{% url 'activate_account' account.id %}">Activate</a>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 </div>
 
 <!-- Buttons at the bottom of the Chart of Accounts -->
-<div class="text-center mt-3 mb-5">
+<div class="text-center mt-3 mb-5"> <!-- Center the buttons and add some top margin -->
     <!-- Add New Account Button but only for admins -->
     {% if is_admin %}
-    <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account">Add New Account</a>
+    <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account" >Add New Account</a>
     {% endif %}
-    <!-- View Changes button for all users -->
     <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" title="view log changes">View Changes</a>
+    <!-- Original Clear Search Button 
+    <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2" title="clear current search">Clear Search</a>
+    -->
 </div>
+
 
 <!-- Include datepicker.js -->
 <script src="https://cdn.jsdelivr.net/npm/datepicker.js"></script>
