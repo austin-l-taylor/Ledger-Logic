@@ -78,8 +78,8 @@
     <!-- Add New Account Button but only for admins -->
     {% if is_admin %}
     <a href="{% url 'add_account' %}" class="btn btn-success" title="add new account" >Add New Account</a>
-    <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" title="view log changes">View Changes</a>
     {% endif %}
+    <a href="{% url 'view_coa_logs' %}" class="btn btn-outline-primary" title="view log changes">View Changes</a>
     <!-- Original Clear Search Button 
     <a href="{% url 'chart_of_accounts' %}" class="btn btn-secondary ml-2" title="clear current search">Clear Search</a>
     -->

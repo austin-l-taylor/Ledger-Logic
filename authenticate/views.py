@@ -624,7 +624,6 @@ def activate_account(request, account_id):
     return redirect("chart_of_accounts")
 
 
-@user_passes_test(lambda u: u.is_superuser)
 def view_coa_logs(request):
     """
     Definition that handles viewing the Chart of Accounts event logs.
@@ -658,6 +657,7 @@ def view_coa_logs(request):
         )
 
     return render(request, "main_page/view_coa_logs.html", {"logs": serialized_logs})
+
 
 
 def format_change_data(data):
