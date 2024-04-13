@@ -59,14 +59,25 @@
                     <!-- Empty left space -->
                 </ul>
 
-                <!-- Centered Navbar Items -->
                 <ul class="navbar-nav nav-center mb-2 mb-lg-0">
                     {% if user.is_authenticated %}
                         <li class="nav-item" title="see journal entries">
-                            <a class="nav-link" href="{% url 'journal_entry_page' %}">Journal Entries</a> <!-- Removed 'functions' class -->
+                            <a class="nav-link" href="{% url 'journal_entry_page' %}">Journal Entries</a> 
                         </li>
                         <li class="nav-item" title="see all accounts">
-                            <a class="nav-link" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a> <!-- Removed 'functions' class -->
+                            <a class="nav-link" href="{% url 'chart_of_accounts' %}">Chart of Accounts</a> 
+                        </li>
+                        <!-- Forms Dropdown Menu -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Forms
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="formsDropdown">
+                                <li><a class="dropdown-item" href="{% url 'trial_balance' %}">Trial Balance</a></li>
+                                <li><a class="dropdown-item" href="{% url 'income_statement' %}">Income Statement</a></li>
+                                <li><a class="dropdown-item" href="{% url 'balance_sheet' %}">Balance Sheet</a></li>
+                                <li><a class="dropdown-item" href="{% url 'retained_earnings' %}">Retained Earnings</a></li>
+                            </ul>
                         </li>
                     {% endif %}
                 </ul>

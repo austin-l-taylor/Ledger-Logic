@@ -1,10 +1,27 @@
+# Django imports
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from authenticate.models import CustomUser
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.contrib.admin.views.decorators import user_passes_test
+from django.conf import settings
+from django.utils import timezone
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMultiAlternatives
+from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
+from django.core.serializers.json import DjangoJSONEncoder
+from django.core.serializers import serialize
+from django.db.models import Sum
+from django.contrib.auth.hashers import check_password
+from django.views.generic.edit import FormView
+from django.http import HttpResponseRedirect
+
+# Local imports
 from .forms import (
     SignUpForm,
     SecurityQuestionForm,
@@ -22,25 +39,11 @@ from .models import (
     JournalEntry,
     JournalEntryGroup,
 )
-from django.conf import settings
-from django.utils import timezone
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string, get_template
-from django.template import Context
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.core.mail import EmailMultiAlternatives
 from .tokens import account_activation_token
-from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now
-from django.core.serializers import serialize
-from django.core.serializers.json import DjangoJSONEncoder
+
+# Other imports
 import json
-from django.db.models import Sum
-from django.contrib.auth.hashers import check_password
 from decimal import Decimal
-from django.views.generic.edit import FormView
-from django.http import HttpResponse, HttpResponseRedirect
 
 
 def entry_details(request, entry_id):
@@ -51,7 +54,7 @@ def entry_details(request, entry_id):
     is_admin = request.user.is_staff
     return render(
         request,
-        "main_page/entry_details.html",
+        "main_page/ledger/entry_details.html",
         {"journal_entry": journal_entry, "is_admin": is_admin},
     )
 
@@ -72,7 +75,7 @@ def ledger(request, account_id):
 
     return render(
         request,
-        "main_page/ledger.html",
+        "main_page/ledger/ledger.html",
         {"journal_entries": journal_entries, "account": account},
     )
 
@@ -237,7 +240,7 @@ def activate(request, uidb64, token):
 def activationEmail(request, user, username):
     mail_subject = "A new user has registered to your site."
     message = render_to_string(
-        "activationAccount.html",
+        "authenticate/activationAccount.html",
         {
             "user": username,
             "useremail": user.email,
@@ -512,7 +515,9 @@ def chart_of_accounts(request):
         "is_admin": is_admin,
         "form": formSelection,
     }
-    return render(request, "main_page/chart_of_accounts.html", context)
+    return render(
+        request, "main_page/chart_of_accounts/chart_of_accounts.html", context
+    )
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -533,7 +538,9 @@ def add_account(request):
             return redirect("chart_of_accounts")
     else:
         form = ChartOfAccountForm()
-    return render(request, "main_page/add_coa_account.html", {"form": form})
+    return render(
+        request, "main_page/chart_of_accounts/add_coa_account.html", {"form": form}
+    )
 
 
 def edit_account(request, account_id):
@@ -567,7 +574,9 @@ def edit_account(request, account_id):
             return redirect("chart_of_accounts")
     else:
         form = ChartOfAccountForm(instance=account)
-    return render(request, "main_page/edit_coa_account.html", {"form": form})
+    return render(
+        request, "main_page/chart_of_accounts/edit_coa_account.html", {"form": form}
+    )
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -666,7 +675,11 @@ def view_coa_logs(request):
             }
         )
 
-    return render(request, "main_page/view_coa_logs.html", {"logs": serialized_logs})
+    return render(
+        request,
+        "main_page/chart_of_accounts/view_coa_logs.html",
+        {"logs": serialized_logs},
+    )
 
 
 def format_change_data(data):
@@ -706,7 +719,7 @@ def journal_entry_page(request):
         is_admin = request.user.is_staff
         return render(
             request,
-            "main_page/journal_entry_page.html",
+            "main_page/journal_entry/journal_entry_page.html",
             {"journal_entries": journal_entries, "is_admin": is_admin},
         )
 
@@ -731,7 +744,9 @@ def add_journal_entry(request):
         # Check if debit and credit values match
         if debit1 + debit2 != credit1 + credit2:
             messages.error(request, "The total debit and credit values must match.")
-            return render(request, "main_page/add_journal_entry_page.html")
+            return render(
+                request, "main_page/journal_entry/add_journal_entry_page.html"
+            )
 
         try:
             # Check if accounts exist in the Chart of Accounts
@@ -778,7 +793,9 @@ def add_journal_entry(request):
             messages.error(
                 request, "One or more accounts do not exist in the Chart of Accounts."
             )
-            return render(request, "main_page/add_journal_entry_page.html")
+            return render(
+                request, "main_page/journal_entry/add_journal_entry_page.html"
+            )
         journalEntryEmail(
             request,
             account1,
@@ -792,7 +809,7 @@ def add_journal_entry(request):
         )
         return redirect("journal_entry_page")
     else:
-        return render(request, "main_page/add_journal_entry_page.html")
+        return render(request, "main_page/journal_entry/add_journal_entry_page.html")
 
 
 def add_comment(request, entry_id):
@@ -816,7 +833,7 @@ def journalEntryEmail(
 ):
     mail_subject = "A new journal entry has been posted to your site."
     message = render_to_string(
-        "journalEntryEmail.html",
+        "main_page/journal_entry/journalEntryEmail.html",
         {
             "account1Name": account1Name,
             "account1Debit": acct1debit,
@@ -857,3 +874,39 @@ def email(request, email, subject, message):
                 recipient_list=["myin1@students.kennesaw.edu"],
             )
     return render(request, "main_page/contact.html", {"form": form})
+
+
+def trial_balance(request):
+    """
+    Definition that handles the trial balance page.
+    """
+    accounts = ChartOfAccounts.objects.all()
+    return render(request, "main_page/forms/trial_balance.html", {"accounts": accounts})
+
+
+def income_statement(request):
+    """
+    Definition that handles the income statement page.
+    """
+    accounts = ChartOfAccounts.objects.all()
+    return render(
+        request, "main_page/forms/income_statement.html", {"accounts": accounts}
+    )
+
+
+def balance_sheet(request):
+    """
+    Definition that handles the balance sheet page.
+    """
+    accounts = ChartOfAccounts.objects.all()
+    return render(request, "main_page/forms/balance_sheet.html", {"accounts": accounts})
+
+
+def retained_earnings(request):
+    """
+    Definition that handles the retained earnings page.
+    """
+    accounts = ChartOfAccounts.objects.all()
+    return render(
+        request, "main_page/forms/retained_earnings.html", {"accounts": accounts}
+    )
