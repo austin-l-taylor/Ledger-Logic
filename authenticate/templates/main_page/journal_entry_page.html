@@ -18,10 +18,7 @@
                     <th>Credit</th>
                     <th>Status</th>
                     {% if is_admin %}
-                    {% if is_admin %}
                     <th>Actions</th>
-                    <th>Comment</th>
-                    {% endif %}
                     <th>Comment</th>
                     {% endif %}
                 </tr>
@@ -57,19 +54,6 @@
                             {% elif entry.status == 'Rejected' %}
                                 Rejected
                             {% endif %}
-                        </td>
-                        <td>
-                            {% if entry.comments == "" %}
-                            <form id="comm" method="post" style="display: inline-block;">
-                                {% csrf_token %}
-                                <input type="text" name="addComment" required></div>
-                                <a href="" onclick="document.forms['comm'].submit()">Add Comment</a>
-                            </form>
-                            {% else %}
-                                {{ entry.comments}}
-                            {% endif %}
-                        </td>
-                    {% endif %}
                         </td>
                         <td>
                             {% if entry.comments == "" %}

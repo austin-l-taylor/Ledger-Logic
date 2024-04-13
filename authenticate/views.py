@@ -25,7 +25,7 @@ from .models import (
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string , get_template
+from django.template.loader import render_to_string, get_template
 from django.template import Context
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -49,16 +49,19 @@ def entry_details(request, entry_id):
     """
     journal_entry = get_object_or_404(JournalEntry, id=entry_id)
     is_admin = request.user.is_staff
-    return render(request, 'main_page/entry_details.html', {'journal_entry': journal_entry, 'is_admin': is_admin})
+    return render(
+        request,
+        "main_page/entry_details.html",
+        {"journal_entry": journal_entry, "is_admin": is_admin},
+    )
 
-    
 
 def ledger(request, account_id):
     account = get_object_or_404(ChartOfAccounts, id=account_id)
-    
+
     # Filter journal entries by account and order by date
-    journal_entries = JournalEntry.objects.filter(account=account).order_by('date')
-    
+    journal_entries = JournalEntry.objects.filter(account=account).order_by("date")
+
     initial_balance = account.initial_balance
     current_balance = initial_balance
 
@@ -67,7 +70,11 @@ def ledger(request, account_id):
         entry.balance = current_balance + entry.debit - entry.credit
         current_balance = entry.balance
 
-    return render(request, "main_page/ledger.html", {"journal_entries": journal_entries, "account": account})
+    return render(
+        request,
+        "main_page/ledger.html",
+        {"journal_entries": journal_entries, "account": account},
+    )
 
 
 def serialize_account(instance):
@@ -470,13 +477,13 @@ def chart_of_accounts(request):
         accounts = ChartOfAccounts.objects.all().order_by(
             "order",
         )  # Fetch all accounts, ordered by 'order'
-    
+
     if request.method == "POST":
         if request.user.is_superuser:
-            #Email to User
+            # Email to User
             form = ContactFormAdmin(request.POST)
         else:
-            #Email to Admin
+            # Email to Admin
             form = ContactForm(request.POST)
 
         if form.is_valid():
@@ -503,12 +510,9 @@ def chart_of_accounts(request):
     context = {
         "accounts": accounts,
         "is_admin": is_admin,
-        "form":formSelection,
+        "form": formSelection,
     }
     return render(request, "main_page/chart_of_accounts.html", context)
-
-
-
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -665,7 +669,6 @@ def view_coa_logs(request):
     return render(request, "main_page/view_coa_logs.html", {"logs": serialized_logs})
 
 
-
 def format_change_data(data):
     """
     This function formats the change data to a string.
@@ -693,7 +696,7 @@ def journal_entry_page(request):
             entries = JournalEntry.objects.filter(group_id=group_id)
             for entry in entries:
                 add_comment(request, group_id)
-            entry.status = "Rejected"
+                entry.status = "Rejected"
                 entry.save()
 
         return redirect("journal_entry_page")
@@ -769,39 +772,59 @@ def add_journal_entry(request):
                 status="Pending",
                 group=group,
             )
-            
+
         except ChartOfAccounts.DoesNotExist:
             # Handle the case where the account does not exist
             messages.error(
                 request, "One or more accounts do not exist in the Chart of Accounts."
             )
             return render(request, "main_page/add_journal_entry_page.html")
-        journalEntryEmail(request, account1, debit1, credit1, comments1, account2, debit1, debit2, comments2)
+        journalEntryEmail(
+            request,
+            account1,
+            debit1,
+            credit1,
+            comments1,
+            account2,
+            debit1,
+            debit2,
+            comments2,
+        )
         return redirect("journal_entry_page")
     else:
         return render(request, "main_page/add_journal_entry_page.html")
+
 
 def add_comment(request, entry_id):
     entry = JournalEntry.objects.get(id=entry_id)
     form = CommentForm()
 
-    context = {
-        'form': form
-    }
+    context = {"form": form}
     return redirect("journal_entry_page")
 
-def journalEntryEmail(request, account1Name, acct1debit, acct1credit, account1, account2Name, acct2debit, acct2credit, account2 ):
+
+def journalEntryEmail(
+    request,
+    account1Name,
+    acct1debit,
+    acct1credit,
+    account1,
+    account2Name,
+    acct2debit,
+    acct2credit,
+    account2,
+):
     mail_subject = "A new journal entry has been posted to your site."
     message = render_to_string(
         "journalEntryEmail.html",
         {
             "account1Name": account1Name,
-            "account1Debit":acct1debit,
-            "account1Credit":acct1credit,
+            "account1Debit": acct1debit,
+            "account1Credit": acct1credit,
             "account1": account1,
             "account2Name": account2Name,
-            "account2Debit":acct2debit,
-            "account2Credit":acct2credit,
+            "account2Debit": acct2debit,
+            "account2Credit": acct2credit,
             "account2": account2,
             "domain": get_current_site(request).domain,
         },
