@@ -36,4 +36,5 @@ urlpatterns = [
     path("income-statement/", views.income_statement, name="income_statement"),
     path("balance-sheet/", views.balance_sheet, name="balance_sheet"),
     path("retained-earnings/", views.retained_earnings, name="retained_earnings"),
+    path("export_to_pdf/", views.export_to_pdf, name="export_to_pdf"),
 ]
