@@ -1,25 +1,23 @@
 # Django imports
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.urls import reverse
 from django.contrib.admin.views.decorators import user_passes_test
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, get_template
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers import serialize
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.contrib.auth.hashers import check_password
-from django.views.generic.edit import FormView
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 
 # Local imports
 from .forms import (
@@ -44,40 +42,10 @@ from .tokens import account_activation_token
 # Other imports
 import json
 from decimal import Decimal
-
-
-def entry_details(request, entry_id):
-    """
-    View function to display details of a specific journal entry.
-    """
-    journal_entry = get_object_or_404(JournalEntry, id=entry_id)
-    is_admin = request.user.is_staff
-    return render(
-        request,
-        "main_page/ledger/entry_details.html",
-        {"journal_entry": journal_entry, "is_admin": is_admin},
-    )
-
-
-def ledger(request, account_id):
-    account = get_object_or_404(ChartOfAccounts, id=account_id)
-
-    # Filter journal entries by account and order by date
-    journal_entries = JournalEntry.objects.filter(account=account).order_by("date")
-
-    initial_balance = account.initial_balance
-    current_balance = initial_balance
-
-    for entry in journal_entries:
-        # Calculate the balance for each entry
-        entry.balance = current_balance + entry.debit - entry.credit
-        current_balance = entry.balance
-
-    return render(
-        request,
-        "main_page/ledger/ledger.html",
-        {"journal_entries": journal_entries, "account": account},
-    )
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from io import BytesIO
+from xhtml2pdf import pisa
 
 
 def serialize_account(instance):
@@ -852,6 +820,40 @@ def journalEntryEmail(
     email.send()
 
 
+def entry_details(request, entry_id):
+    """
+    View function to display details of a specific journal entry.
+    """
+    journal_entry = get_object_or_404(JournalEntry, id=entry_id)
+    is_admin = request.user.is_staff
+    return render(
+        request,
+        "main_page/ledger/entry_details.html",
+        {"journal_entry": journal_entry, "is_admin": is_admin},
+    )
+
+
+def ledger(request, account_id):
+    account = get_object_or_404(ChartOfAccounts, id=account_id)
+
+    # Filter journal entries by account and order by date
+    journal_entries = JournalEntry.objects.filter(account=account).order_by("date")
+
+    initial_balance = account.initial_balance
+    current_balance = initial_balance
+
+    for entry in journal_entries:
+        # Calculate the balance for each entry
+        entry.balance = current_balance + entry.debit - entry.credit
+        current_balance = entry.balance
+
+    return render(
+        request,
+        "main_page/ledger/ledger.html",
+        {"journal_entries": journal_entries, "account": account},
+    )
+
+
 def email(request, email, subject, message):
     if request.method == "POST":
         form = ContactForm(request.POST)
@@ -876,12 +878,48 @@ def email(request, email, subject, message):
     return render(request, "main_page/contact.html", {"form": form})
 
 
+from django.db.models import Sum
+
+
+from django.db.models import Sum
+
+
 def trial_balance(request):
     """
     Definition that handles the trial balance page.
     """
-    accounts = ChartOfAccounts.objects.all()
-    return render(request, "main_page/forms/trial_balance.html", {"accounts": accounts})
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    if start_date and end_date:
+        journal_entries = JournalEntry.objects.filter(
+            Q(date__gte=start_date) & Q(date__lte=end_date)
+        )
+    elif start_date:
+        journal_entries = JournalEntry.objects.filter(date__gte=start_date)
+    elif end_date:
+        journal_entries = JournalEntry.objects.filter(date__lte=end_date)
+    else:
+        journal_entries = JournalEntry.objects.all()
+
+    # Group by account and aggregate debit and credit values
+    accounts = journal_entries.values("account__account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    # Calculate total debit and credit
+    total_debit = sum(account["total_debit"] for account in accounts)
+    total_credit = sum(account["total_credit"] for account in accounts)
+
+    return render(
+        request,
+        "main_page/forms/trial_balance.html",
+        {
+            "accounts": accounts,
+            "total_debit": total_debit,
+            "total_credit": total_credit,
+        },
+    )
 
 
 def income_statement(request):
@@ -910,3 +948,31 @@ def retained_earnings(request):
     return render(
         request, "main_page/forms/retained_earnings.html", {"accounts": accounts}
     )
+
+
+def export_to_pdf(request):
+    print("export_to_pdf view was called")  # This will print to the console
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    # Load the template
+    template = get_template("main_page/pdf_template.html")
+
+    # Define the context for the template
+    context = {
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    # Render the template with the context
+    html = template.render(context)
+
+    # Create a BytesIO object and generate the PDF
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+
+    # If there was an error, return a HTTP response
+    if not pdf.err:
+        return FileResponse(result, as_attachment=True, filename="report.pdf")
+    else:
+        return HttpResponse("Error generating PDF", status=500)

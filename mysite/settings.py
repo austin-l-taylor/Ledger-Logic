@@ -1,25 +1,26 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # static files configuration
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # new media files configuration (directory for journal entry files)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-ALLOWED_HOSTS = ['*','localhost', '127.0.0.1', '::1']
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "::1"]
 
 
-HEROKU_HOSTNAME = os.environ.get('HEROKU_HOSTNAME')
+HEROKU_HOSTNAME = os.environ.get("HEROKU_HOSTNAME")
 if HEROKU_HOSTNAME:
     ALLOWED_HOSTS.append(HEROKU_HOSTNAME)
 
@@ -65,7 +66,7 @@ AUTH_USER_MODEL = "authenticate.CustomUser"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -96,9 +97,7 @@ load_dotenv()
 
 import dj_database_url
 
-DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
-}
+DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
 
 
 # Password validation

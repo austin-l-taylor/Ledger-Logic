@@ -1,0 +1,58 @@
+{% extends "main_page/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Trial Balance</h2>
+
+    <!-- Date or date range form -->
+    <form method="get" class="mb-4">
+        <div class="row">
+            <div class="col">
+                <label for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start_date" class="form-control">
+            </div>
+            <div class="col">
+                <label for="end_date">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="form-control">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+
+    <!-- Journal entry accounts table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Account Name</th>
+                <th>Total Debit</th>
+                <th>Total Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.account__account_name }}</td>
+                <td>{{ account.total_debit }}</td>
+                <td>{{ account.total_credit }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No accounts found for the selected date range.</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>{{ total_debit }}</strong></td>
+                <td><strong>{{ total_credit }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- Export to PDF form -->
+    <form method="get" action="{% url 'export_to_pdf' %}" class="mb-4">
+        <input type="hidden" name="start_date" value="{{ request.GET.start_date }}">
+        <input type="hidden" name="end_date" value="{{ request.GET.end_date }}">
+        <button type="submit" class="btn btn-secondary">Export to PDF</button>
+    </form>
+</div>
+{% endblock %}
