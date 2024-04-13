@@ -12,7 +12,13 @@ from .forms import (
     EmailForm,
     ChartOfAccountForm,
 )
-from .models import CustomUser, ChartOfAccounts, CoAEventLog, JournalEntry
+from .models import (
+    CustomUser,
+    ChartOfAccounts,
+    CoAEventLog,
+    JournalEntry,
+    JournalEntryGroup,
+)
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sites.shortcuts import get_current_site
@@ -617,16 +623,17 @@ def format_change_data(data):
 def journal_entry_page(request):
     if request.method == "POST":
         if "approve" in request.POST:
-            entry_id = request.POST.get("entry_id")
-            entry = JournalEntry.objects.get(id=entry_id)
-            entry.status = "Approved"  # Adjust the status based on your model
-            entry.save()
+            group_id = request.POST.get("group_id")
+            entries = JournalEntry.objects.filter(group_id=group_id)
+            for entry in entries:
+                entry.approve()
 
         elif "reject" in request.POST:
-            entry_id = request.POST.get("entry_id")
-            entry = JournalEntry.objects.get(id=entry_id)
-            entry.status = "Rejected"  # Adjust the status based on your model
-            entry.save()
+            group_id = request.POST.get("group_id")
+            entries = JournalEntry.objects.filter(group_id=group_id)
+            for entry in entries:
+                entry.status = "Rejected"
+                entry.save()
 
         return redirect("journal_entry_page")
 
@@ -657,10 +664,18 @@ def add_journal_entry(request):
         comments2 = request.POST.get("comments2")
         attachment2 = request.FILES.get("attachment2")
 
+        # Check if debit and credit values match
+        if debit1 + debit2 != credit1 + credit2:
+            messages.error(request, "The total debit and credit values must match.")
+            return render(request, "main_page/add_journal_entry_page.html")
+
         try:
             # Check if accounts exist in the Chart of Accounts
             account1 = ChartOfAccounts.objects.get(account_name=account1_name)
             account2 = ChartOfAccounts.objects.get(account_name=account2_name)
+
+            # Create a JournalEntryGroup
+            group = JournalEntryGroup.objects.create()
 
             # Update debit and credit for account1
             account1.debit += debit1
@@ -681,6 +696,7 @@ def add_journal_entry(request):
                 comments=comments1,
                 attachment=attachment1,
                 status="Pending",
+                group=group,
             )
             JournalEntry.objects.create(
                 account=account2,
@@ -690,6 +706,7 @@ def add_journal_entry(request):
                 comments=comments2,
                 attachment=attachment2,
                 status="Pending",
+                group=group,
             )
 
         except ChartOfAccounts.DoesNotExist:
