@@ -53,7 +53,12 @@ $(document).ready(function() {
                 </tbody>
             </table>
         </div>
-
+        {% for error in field.errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endfor %}
+        
         <div class="text-center mt-3 mb-5">
             <button type="submit" class="btn btn-success">Submit</button>
             <button type="reset" class="btn btn-secondary">Clear</button>

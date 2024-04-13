@@ -29,4 +29,7 @@ urlpatterns = [
     path("help/", views.help, name="help"),
     path("journal-entries/", views.journal_entry_page, name="journal_entry_page"),
     path("journal-entry/add/", views.add_journal_entry, name="add_journal_entry"),
+    path('entry_details/<int:entry_id>/', views.entry_details, name='entry_details'),
+    path("contact/", views.email, name="contact"),
+    path("addComment/<str:account_name>", views.add_comment, name="addComment"),
 ]

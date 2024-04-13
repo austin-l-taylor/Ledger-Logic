@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from datetime import datetime, timedelta
 from .models import ChartOfAccounts, JournalEntry
+from django.contrib import admin
 
 User = get_user_model()
 
@@ -185,4 +186,30 @@ class ChartOfAccountForm(forms.ModelForm):
 class JournalEntryForm(forms.ModelForm):
     class Meta:
         model = JournalEntry
-        fields = ['date', 'account', 'debit', 'credit', 'status']
+        fields = ['date', 'account', 'debit', 'credit', 'status', 'comments' ]
+
+
+class CommentForm(forms.Form):
+        fields = ('commenter_name', 'comment_body')
+        widgets = {
+            'commenter_name': forms.TextInput(attrs={'class':'form-control'}),
+            'comment_body': forms.Textarea(attrs={'class':'form-control'}),
+        }
+
+class ContactForm(forms.Form):
+    #Hardcoded email
+    To = forms.CharField(widget=forms.HiddenInput(), initial= "myin1@students.kennesaw.edu")
+    email = forms.EmailField(
+        widget=forms.TextInput(attrs={"placeholder": "Your e-mail"})
+    )
+    subject = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "Subject"}))
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={"placeholder": "Your message"})
+    )
+
+class ContactFormAdmin(forms.Form):
+    To = forms.ChoiceField(choices=[(i.email, i.email) for i in User.objects.filter(is_active=True)])
+    subject = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "Subject"}))
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={"placeholder": "Your message"})
+    )

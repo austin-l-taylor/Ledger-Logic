@@ -43,4 +43,5 @@ class CustomUserAdmin(UserAdmin):
 
     actions = None
 
-admin.site.register(CustomUser, CustomUserAdmin)
+
+admin.site.register(CustomUser, CustomUserAdmin )
