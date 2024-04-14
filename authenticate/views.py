@@ -979,11 +979,69 @@ def income_statement(request):
 
 def balance_sheet(request):
     """
-    Definition that handles the balance sheet page.
+    View for the balance sheet page.
     """
-    accounts = ChartOfAccounts.objects.all()
-    return render(request, "main_page/forms/balance_sheet.html", {"accounts": accounts})
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
 
+    if start_date and end_date:
+        journal_entries = JournalEntry.objects.filter(
+            date__range=[start_date, end_date]
+        )
+    elif start_date:
+        journal_entries = JournalEntry.objects.filter(date__gte=start_date)
+    elif end_date:
+        journal_entries = JournalEntry.objects.filter(date__lte=end_date)
+    else:
+        journal_entries = JournalEntry.objects.all()
+
+    # Define categories
+    assets_categories = ["Assets"]
+    liabilities_categories = ["Liabilities"]
+    equity_categories = ["Stockholders' Equity"]
+
+    # Filter accounts based on categories
+    asset_accounts = ChartOfAccounts.objects.filter(
+        account_category__in=assets_categories
+    ).values("account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    liability_accounts = ChartOfAccounts.objects.filter(
+        account_category__in=liabilities_categories
+    ).values("account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    equity_accounts = ChartOfAccounts.objects.filter(
+        account_category__in=equity_categories
+    ).values("account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    # Calculate totals
+    total_assets = sum(account["total_debit"] - account["total_credit"] for account in asset_accounts)
+    total_liabilities = sum(account["total_credit"] - account["total_debit"] for account in liability_accounts)
+    total_equity = sum(account["total_credit"] - account["total_debit"] for account in equity_accounts)
+    
+    # Total Liabilities and Stockholders' Equity
+    total_liabilities_and_equity = total_liabilities + total_equity
+
+    return render(
+        request,
+        "main_page/forms/balance_sheet.html",
+        {
+            "asset_accounts": asset_accounts,
+            "liability_accounts": liability_accounts,
+            "equity_accounts": equity_accounts,
+            "total_assets": total_assets,
+            "total_liabilities": total_liabilities,
+            "total_equity": total_equity,
+            "total_liabilities_and_equity": total_liabilities_and_equity,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+    )
 
 def retained_earnings(request):
     """
