@@ -1,0 +1,115 @@
+{% extends "main_page/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Income Statement</h2>
+
+    <!-- Date or date range form -->
+    <form method="get" class="mb-4">
+        <div class="row">
+            <div class="col">
+                <label for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col">
+                <label for="end_date">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+
+    <!-- Income Statement table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Revenues</th>
+                <th>Total Debit</th>
+                <th>Total Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in revenue_accounts %}
+            <tr>
+                <td>{{ account.account__account_name }}</td>
+                <td>{{ account.total_debit }}</td>
+                <td>{{ account.total_credit }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No revenue accounts found for the selected date range.</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>Total Revenue</strong></td>
+                <td></td>
+                <td><strong>{{ total_revenue }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Expenses Section -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Expenses</th>
+                <th>Total Debit</th>
+                <th>Total Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in expense_accounts %}
+            <tr>
+                <td>{{ account.account__account_name }}</td>
+                <td>{{ account.total_debit }}</td>
+                <td>{{ account.total_credit }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No expense accounts found for the selected date range.</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>Total Expenses</strong></td>
+                <td><strong>{{ total_expenses }}</strong></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Net Income -->
+    <div class="mb-4">
+        <h3>Net Income</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Net Income</strong></td>
+                    <td></td>
+                    <td><strong>{{ net_income }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Export options -->
+    <div class="mb-4">
+        <form method="get" action="{% url 'export_to_pdf' %}" style="display:inline;">
+            <input type="hidden" name="start_date" value="{{ start_date }}">
+            <input type="hidden" name="end_date" value="{{ end_date }}">
+            <button type="submit" class="btn btn-secondary">Export to PDF</button>
+        </form>
+        <a href="#" class="btn btn-success">Print</a>
+        <a href="#" class="btn btn-info">Email</a>
+        <!-- Add more options as needed -->
+    </div>
+</div>
+{% endblock %}
+
