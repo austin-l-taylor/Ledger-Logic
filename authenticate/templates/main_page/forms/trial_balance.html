@@ -20,6 +20,7 @@
         <button type="submit" class="btn btn-primary mt-2">Submit</button>
     </form>
 
+    {% if request.GET.start_date and request.GET.end_date %}
     <!-- Journal entry accounts table -->
     <table class="table table-striped">
         <thead>
@@ -54,5 +55,6 @@
         <input type="hidden" name="end_date" value="{{ request.GET.end_date }}">
         <button type="submit" class="btn btn-secondary">Export to PDF</button>
     </form>
+    {% endif %}
 </div>
 {% endblock %}
