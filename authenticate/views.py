@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers import serialize
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F, FloatField, ExpressionWrapper
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 
@@ -924,21 +924,124 @@ def trial_balance(request):
 
 def income_statement(request):
     """
-    Definition that handles the income statement page.
+    View for the Income Statement page.
     """
-    accounts = ChartOfAccounts.objects.all()
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    if start_date and end_date:
+        journal_entries = JournalEntry.objects.filter(
+            date__range=[start_date, end_date]
+        )
+    elif start_date:
+        journal_entries = JournalEntry.objects.filter(date__gte=start_date)
+    elif end_date:
+        journal_entries = JournalEntry.objects.filter(date__lte=end_date)
+    else:
+        journal_entries = JournalEntry.objects.all()
+
+    # Group by account and calculate net income
+    accounts = journal_entries.values("account__account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    # Define revenue and expense account names
+    revenue_account_names = ["Unearned Revenue"]
+    expense_account_names = ["Accrued Expense", "Prepaid Expenses"]
+
+    # Filter accounts based on revenue and expense account names
+    revenue_accounts = [account for account in accounts if account['account__account_name'] in revenue_account_names]
+    expense_accounts = [account for account in accounts if account['account__account_name'] in expense_account_names]
+
+    # Calculate total revenue
+    total_revenue = sum(account['total_credit'] - account['total_debit'] for account in revenue_accounts)
+
+    # Calculate total expenses
+    total_expenses = sum(account['total_debit'] - account['total_credit'] for account in expense_accounts)
+
+    # Calculate net income
+    net_income = total_revenue - total_expenses
+
     return render(
-        request, "main_page/forms/income_statement.html", {"accounts": accounts}
+        request,
+        "main_page/forms/income_statement.html",
+        {
+            "revenue_accounts": revenue_accounts,
+            "expense_accounts": expense_accounts,
+            "total_revenue": total_revenue,
+            "total_expenses": total_expenses,
+            "net_income": net_income,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
     )
 
 
 def balance_sheet(request):
     """
-    Definition that handles the balance sheet page.
+    View for the balance sheet page.
     """
-    accounts = ChartOfAccounts.objects.all()
-    return render(request, "main_page/forms/balance_sheet.html", {"accounts": accounts})
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
 
+    if start_date and end_date:
+        journal_entries = JournalEntry.objects.filter(
+            date__range=[start_date, end_date]
+        )
+    elif start_date:
+        journal_entries = JournalEntry.objects.filter(date__gte=start_date)
+    elif end_date:
+        journal_entries = JournalEntry.objects.filter(date__lte=end_date)
+    else:
+        journal_entries = JournalEntry.objects.all()
+
+    # Define categories
+    assets_categories = ["Assets"]
+    liabilities_categories = ["Liabilities"]
+    equity_categories = ["Stockholders' Equity"]
+
+    # Filter accounts based on categories
+    asset_accounts = ChartOfAccounts.objects.filter(
+        account_category__in=assets_categories
+    ).values("account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    liability_accounts = ChartOfAccounts.objects.filter(
+        account_category__in=liabilities_categories
+    ).values("account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    equity_accounts = ChartOfAccounts.objects.filter(
+        account_category__in=equity_categories
+    ).values("account_name").annotate(
+        total_debit=Sum("debit"), total_credit=Sum("credit")
+    )
+
+    # Calculate totals
+    total_assets = sum(account["total_debit"] - account["total_credit"] for account in asset_accounts)
+    total_liabilities = sum(account["total_credit"] - account["total_debit"] for account in liability_accounts)
+    total_equity = sum(account["total_credit"] - account["total_debit"] for account in equity_accounts)
+    
+    # Total Liabilities and Stockholders' Equity
+    total_liabilities_and_equity = total_liabilities + total_equity
+
+    return render(
+        request,
+        "main_page/forms/balance_sheet.html",
+        {
+            "asset_accounts": asset_accounts,
+            "liability_accounts": liability_accounts,
+            "equity_accounts": equity_accounts,
+            "total_assets": total_assets,
+            "total_liabilities": total_liabilities,
+            "total_equity": total_equity,
+            "total_liabilities_and_equity": total_liabilities_and_equity,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+    )
 
 def retained_earnings(request):
     """
