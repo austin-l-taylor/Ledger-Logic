@@ -1081,7 +1081,41 @@ def retained_earnings(request):
     """
     Definition that handles the retained earnings page.
     """
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+  
+    if start_date and end_date:
+       journal_entries = JournalEntry.objects.filter(
+           Q(date__gte=start_date) & Q(date__lte=end_date)
+       )
+    elif start_date:
+       journal_entries = JournalEntry.objects.filter(date__gte=start_date)
+    elif end_date:
+       journal_entries = JournalEntry.objects.filter(date__lte=end_date)
+    else:
+       journal_entries = JournalEntry.objects.all()
+  
+    
+     # Group by account and aggregate debit and credit values
+    accounts = journal_entries.values("account__account_name").annotate(
+        net_income=Sum("credit"), dividends=Sum("debit")
+    )
+
+    # Calculate total debit and credit
+    net_income = sum(account["net_income"] for account in accounts)
+    dividends = sum(account["dividends"] for account in accounts)
+
+
+       #calculate rEarnings
+    rEarnings = net_income-dividends
+    
+
     accounts = ChartOfAccounts.objects.all()
     return render(
-        request, "main_page/forms/retained_earnings.html", {"accounts": accounts}
-    )
+         request, "main_page/forms/retained_earnings.html",
+             {"accounts": accounts,
+              "net_income": net_income,
+              "dividends": dividends,
+            "rEarnings": rEarnings
+              }
+   )
