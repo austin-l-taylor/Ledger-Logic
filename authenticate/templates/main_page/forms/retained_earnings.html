@@ -28,12 +28,7 @@
         </thead>
         <tbody>
             {% for account in accounts %}
-            <tr>
-                <td>{{ account.account__account_name }}</td>
-                <td>{{ account.net_income }}</td>
-                <td>{{ account.dividends }}</td>
-                
-            </tr>
+           
             {% empty %}
             <tr>
                 <td colspan="3">No accounts found for the selected date range.</td>
