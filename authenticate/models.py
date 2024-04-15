@@ -234,7 +234,6 @@ class JournalEntry(models.Model):
     credit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=100, choices=STATUS_CHOICES, default="Pending")
     comments = models.TextField(blank=True, null=True)
-    # attachement column, this will automatically add the files to a sub-directory called journal_entries inside the media file in the root
     attachment = models.FileField(upload_to="journal_entries/", null=True, blank=True)
     group = models.ForeignKey(
         "JournalEntryGroup",
@@ -243,6 +242,22 @@ class JournalEntry(models.Model):
         null=True,
         blank=True,
     )
+
+    @property
+    def normal_side(self):
+        return self.account.normal_side
+
+    @property
+    def account_category(self):
+        return self.account.account_category
+
+    @property
+    def account_subcategory(self):
+        return self.account.account_subcategory
+
+    @property
+    def account_name(self):
+        return self.account.account_name
 
     def approve(self):
         if self.status == "Pending":
