@@ -1,0 +1,87 @@
+{% extends "main_page/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Retained Earnings</h2>
+
+    <!-- Date or date range form -->
+    <form method="get" class="mb-4">
+        <div class="row">
+            <div class="col">
+                <label for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start_date" class="form-control">
+            </div>
+            <div class="col">
+                <label for="end_date">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="form-control">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+
+    {% if request.GET.start_date and request.GET.end_date %}
+    <!-- Journal entry accounts table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Account Name</th>         
+                <th>Net Income</th>
+                <th>Dividends</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.account__account_name }}</td>
+                <td>{{ account.net_income }}</td>
+                <td>{{ account.dividends }}</td>
+                
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No accounts found for the selected date range.</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>{{ net_income }}</strong></td>
+                <td><strong>{{ dividends }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+<!-- Retained Earnings Table -->
+<div class="mb-4">
+    <h3>Retained Earnings</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <th></th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Retained Earnings here</strong></td>
+                <td></td>
+                <td><strong>{{ rEarnings }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
+    <!-- Export to PDF form -->
+    <form method="get" action="{% url 'export_to_pdf' %}" class="mb-4">
+        <input type="hidden" name="start_date" value="{{ request.GET.start_date }}">
+        <input type="hidden" name="end_date" value="{{ request.GET.end_date }}">
+        <button type="submit" class="btn btn-secondary">Export to PDF</button>
+    </form>
+    <a href="#" class="btn btn-success">Print</a>
+        <a href="#" class="btn btn-info">Email</a>
+    {% endif %}
+</div>
+{% endblock %}
