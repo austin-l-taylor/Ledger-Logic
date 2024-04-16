@@ -238,10 +238,14 @@ class ContactForm(forms.Form):
 
 
 class ContactFormAdmin(forms.Form):
-    To = forms.ChoiceField(
-        choices=[(i.email, i.email) for i in User.objects.filter(is_active=True)]
-    )
+    To = forms.ChoiceField(choices=[])
     subject = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "Subject"}))
     message = forms.CharField(
         widget=forms.Textarea(attrs={"placeholder": "Your message"})
     )
+
+    def __init__(self, *args, **kwargs):
+        super(ContactFormAdmin, self).__init__(*args, **kwargs)
+        # This is where we access the database to get the user choices
+        self.fields['To'].choices = [(user.email, user.email) for user in User.objects.filter(is_active=True)]
+
