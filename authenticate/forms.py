@@ -174,31 +174,60 @@ class ChartOfAccountForm(forms.ModelForm):
     If we need to remove a field from the table then we can use the exclude attribute and specify the field name like the user_id field in this case.
 
     """
+
+    CATEGORY_CHOICES = [
+        ("Assets", "Assets"),
+        ("Liabilities", "Liabilities"),
+        ("Equity", "Equity"),
+    ]
+
+    NORMAL_SIDE_CHOICES = [
+        ("Left", "Left (Debit)"),
+        ("Right", "Right (Credit)"),
+    ]
+
+    account_category = forms.ChoiceField(choices=CATEGORY_CHOICES)
+    normal_side = forms.ChoiceField(choices=NORMAL_SIDE_CHOICES)
+    initial_balance = forms.DecimalField(initial=0)
+    debit = forms.DecimalField(initial=0)
+    credit = forms.DecimalField(initial=0)
+    balance = forms.DecimalField(initial=0)
+    is_active = forms.BooleanField(required=False)
+
     class Meta:
         model = ChartOfAccounts
-        fields = '__all__'  # Or list specific fields if you don't want to include all
-        exclude = ('user_id',)  # Exclude user_id if it's automatically set
+        fields = "__all__"  # Or list specific fields if you don't want to include all
+        exclude = ("user_id",)  # Exclude user_id if it's automatically set
         widgets = {
-            'date_time_account_added': forms.DateInput(attrs={'type': 'date'}),
+            "date_time_account_added": forms.DateInput(attrs={"type": "date"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for _, field in self.fields.items():
+            if not isinstance(field, forms.BooleanField):
+                field.widget.attrs["class"] = "form-control"
 
 
 class JournalEntryForm(forms.ModelForm):
     class Meta:
         model = JournalEntry
-        fields = ['date', 'account', 'debit', 'credit', 'status', 'comments' ]
+        fields = ["date", "account", "debit", "credit", "status", "comments"]
 
 
 class CommentForm(forms.Form):
-        fields = ('commenter_name', 'comment_body')
-        widgets = {
-            'commenter_name': forms.TextInput(attrs={'class':'form-control'}),
-            'comment_body': forms.Textarea(attrs={'class':'form-control'}),
-        }
+    fields = ("commenter_name", "comment_body")
+    widgets = {
+        "commenter_name": forms.TextInput(attrs={"class": "form-control"}),
+        "comment_body": forms.Textarea(attrs={"class": "form-control"}),
+    }
+
 
 class ContactForm(forms.Form):
-    #Hardcoded email
-    To = forms.CharField(widget=forms.HiddenInput(), initial= "myin1@students.kennesaw.edu")
+    # Hardcoded email
+    To = forms.CharField(
+        widget=forms.HiddenInput(), initial="myin1@students.kennesaw.edu"
+    )
     email = forms.EmailField(
         widget=forms.TextInput(attrs={"placeholder": "Your e-mail"})
     )
@@ -207,8 +236,11 @@ class ContactForm(forms.Form):
         widget=forms.Textarea(attrs={"placeholder": "Your message"})
     )
 
+
 class ContactFormAdmin(forms.Form):
-    To = forms.ChoiceField(choices=[(i.email, i.email) for i in User.objects.filter(is_active=True)])
+    To = forms.ChoiceField(
+        choices=[(i.email, i.email) for i in User.objects.filter(is_active=True)]
+    )
     subject = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "Subject"}))
     message = forms.CharField(
         widget=forms.Textarea(attrs={"placeholder": "Your message"})

@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers import serialize
-from django.db.models import Sum, Q, F, FloatField, ExpressionWrapper
+from django.db.models import Sum, Q
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 
@@ -667,13 +667,24 @@ def journal_entry_page(request):
     if request.method == "POST":
         if "approve" in request.POST:
             group_id = request.POST.get("group_id")
+            print(group_id)
             entries = JournalEntry.objects.filter(group_id=group_id)
             add_comment(request, group_id)
             for entry in entries:
                 entry.approve()
+                # Perform the calculation here after the entry has been approved
+                account = entry.account
+                if entry.debit:
+                    account.debit += entry.debit
+                    account.balance += entry.debit
+                else:
+                    account.credit += entry.credit
+                    account.balance -= entry.credit
+                account.save()
 
         elif "reject" in request.POST:
             group_id = request.POST.get("group_id")
+            print(group_id)
             entries = JournalEntry.objects.filter(group_id=group_id)
             for entry in entries:
                 add_comment(request, group_id)
@@ -696,21 +707,19 @@ def add_journal_entry(request):
     if request.method == "POST":
         # Extract data from form
         account1_name = request.POST.get("account1")
-        debit1 = Decimal(request.POST.get("debit1", 0))
-        credit1 = Decimal(request.POST.get("credit1", 0))
+        debit = Decimal(request.POST.get("debit1", 0))
         date1 = request.POST.get("date1")
         comments1 = request.POST.get("comments1")
         attachment1 = request.FILES.get("attachment1")
 
         account2_name = request.POST.get("account2")
-        debit2 = Decimal(request.POST.get("debit2", 0))
-        credit2 = Decimal(request.POST.get("credit2", 0))
+        credit = Decimal(request.POST.get("credit2", 0))
         date2 = request.POST.get("date2")
         comments2 = request.POST.get("comments2")
         attachment2 = request.FILES.get("attachment2")
 
         # Check if debit and credit values match
-        if debit1 + debit2 != credit1 + credit2:
+        if debit != credit:
             messages.error(request, "The total debit and credit values must match.")
             return render(
                 request, "main_page/journal_entry/add_journal_entry_page.html"
@@ -724,21 +733,10 @@ def add_journal_entry(request):
             # Create a JournalEntryGroup
             group = JournalEntryGroup.objects.create()
 
-            # Update debit and credit for account1
-            account1.debit += debit1
-            account1.credit += credit1
-            account1.save()
-
-            # Update debit and credit for account2
-            account2.debit += debit2
-            account2.credit += credit2
-            account2.save()
-
             # Create the Journal Entries
             JournalEntry.objects.create(
                 account=account1,
-                debit=debit1,
-                credit=credit1,
+                debit=debit,
                 date=date1,
                 comments=comments1,
                 attachment=attachment1,
@@ -747,8 +745,7 @@ def add_journal_entry(request):
             )
             JournalEntry.objects.create(
                 account=account2,
-                debit=debit2,
-                credit=credit2,
+                credit=credit,
                 date=date2,
                 comments=comments2,
                 attachment=attachment2,
@@ -767,12 +764,10 @@ def add_journal_entry(request):
         journalEntryEmail(
             request,
             account1,
-            debit1,
-            credit1,
+            debit,
             comments1,
             account2,
-            debit1,
-            debit2,
+            credit,
             comments2,
         )
         return redirect("journal_entry_page")
@@ -780,22 +775,21 @@ def add_journal_entry(request):
         return render(request, "main_page/journal_entry/add_journal_entry_page.html")
 
 
-def add_comment(request, entry_id):
-    entry = JournalEntry.objects.get(id=entry_id)
-    form = CommentForm()
-
-    context = {"form": form}
-    return redirect("journal_entry_page")
+def add_comment(request, group_id):
+    try:
+        entry = JournalEntry.objects.get(id=group_id)
+    except JournalEntry.DoesNotExist:
+        # Handle the error. For example, you could return early:
+        return
+    # Rest of the function...
 
 
 def journalEntryEmail(
     request,
     account1Name,
     acct1debit,
-    acct1credit,
     account1,
     account2Name,
-    acct2debit,
     acct2credit,
     account2,
 ):
@@ -805,10 +799,8 @@ def journalEntryEmail(
         {
             "account1Name": account1Name,
             "account1Debit": acct1debit,
-            "account1Credit": acct1credit,
             "account1": account1,
             "account2Name": account2Name,
-            "account2Debit": acct2debit,
             "account2Credit": acct2credit,
             "account2": account2,
             "domain": get_current_site(request).domain,
@@ -878,12 +870,6 @@ def email(request, email, subject, message):
     return render(request, "main_page/contact.html", {"form": form})
 
 
-from django.db.models import Sum
-
-
-from django.db.models import Sum
-
-
 def trial_balance(request):
     """
     Definition that handles the trial balance page.
@@ -950,14 +936,26 @@ def income_statement(request):
     expense_account_names = ["Accrued Expense", "Prepaid Expenses"]
 
     # Filter accounts based on revenue and expense account names
-    revenue_accounts = [account for account in accounts if account['account__account_name'] in revenue_account_names]
-    expense_accounts = [account for account in accounts if account['account__account_name'] in expense_account_names]
+    revenue_accounts = [
+        account
+        for account in accounts
+        if account["account__account_name"] in revenue_account_names
+    ]
+    expense_accounts = [
+        account
+        for account in accounts
+        if account["account__account_name"] in expense_account_names
+    ]
 
     # Calculate total revenue
-    total_revenue = sum(account['total_credit'] - account['total_debit'] for account in revenue_accounts)
+    total_revenue = sum(
+        account["total_credit"] - account["total_debit"] for account in revenue_accounts
+    )
 
     # Calculate total expenses
-    total_expenses = sum(account['total_debit'] - account['total_credit'] for account in expense_accounts)
+    total_expenses = sum(
+        account["total_debit"] - account["total_credit"] for account in expense_accounts
+    )
 
     # Calculate net income
     net_income = total_revenue - total_expenses
@@ -1001,29 +999,36 @@ def balance_sheet(request):
     equity_categories = ["Stockholders' Equity"]
 
     # Filter accounts based on categories
-    asset_accounts = ChartOfAccounts.objects.filter(
-        account_category__in=assets_categories
-    ).values("account_name").annotate(
-        total_debit=Sum("debit"), total_credit=Sum("credit")
+    asset_accounts = (
+        ChartOfAccounts.objects.filter(account_category__in=assets_categories)
+        .values("account_name")
+        .annotate(total_debit=Sum("debit"), total_credit=Sum("credit"))
     )
 
-    liability_accounts = ChartOfAccounts.objects.filter(
-        account_category__in=liabilities_categories
-    ).values("account_name").annotate(
-        total_debit=Sum("debit"), total_credit=Sum("credit")
+    liability_accounts = (
+        ChartOfAccounts.objects.filter(account_category__in=liabilities_categories)
+        .values("account_name")
+        .annotate(total_debit=Sum("debit"), total_credit=Sum("credit"))
     )
 
-    equity_accounts = ChartOfAccounts.objects.filter(
-        account_category__in=equity_categories
-    ).values("account_name").annotate(
-        total_debit=Sum("debit"), total_credit=Sum("credit")
+    equity_accounts = (
+        ChartOfAccounts.objects.filter(account_category__in=equity_categories)
+        .values("account_name")
+        .annotate(total_debit=Sum("debit"), total_credit=Sum("credit"))
     )
 
     # Calculate totals
-    total_assets = sum(account["total_debit"] - account["total_credit"] for account in asset_accounts)
-    total_liabilities = sum(account["total_credit"] - account["total_debit"] for account in liability_accounts)
-    total_equity = sum(account["total_credit"] - account["total_debit"] for account in equity_accounts)
-    
+    total_assets = sum(
+        account["total_debit"] - account["total_credit"] for account in asset_accounts
+    )
+    total_liabilities = sum(
+        account["total_credit"] - account["total_debit"]
+        for account in liability_accounts
+    )
+    total_equity = sum(
+        account["total_credit"] - account["total_debit"] for account in equity_accounts
+    )
+
     # Total Liabilities and Stockholders' Equity
     total_liabilities_and_equity = total_liabilities + total_equity
 
@@ -1041,15 +1046,6 @@ def balance_sheet(request):
             "start_date": start_date,
             "end_date": end_date,
         },
-    )
-
-def retained_earnings(request):
-    """
-    Definition that handles the retained earnings page.
-    """
-    accounts = ChartOfAccounts.objects.all()
-    return render(
-        request, "main_page/forms/retained_earnings.html", {"accounts": accounts}
     )
 
 
@@ -1079,3 +1075,13 @@ def export_to_pdf(request):
         return FileResponse(result, as_attachment=True, filename="report.pdf")
     else:
         return HttpResponse("Error generating PDF", status=500)
+
+
+def retained_earnings(request):
+    """
+    Definition that handles the retained earnings page.
+    """
+    accounts = ChartOfAccounts.objects.all()
+    return render(
+        request, "main_page/forms/retained_earnings.html", {"accounts": accounts}
+    )
