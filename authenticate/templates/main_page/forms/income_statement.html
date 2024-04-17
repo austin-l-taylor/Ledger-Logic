@@ -20,6 +20,7 @@
         <button type="submit" class="btn btn-primary mt-2">Submit</button>
     </form>
 
+    {% if request.GET.start_date or request.GET.end_date %}
     <!-- Income Statement table -->
     <table class="table table-striped">
         <thead>
@@ -106,10 +107,8 @@
             <input type="hidden" name="end_date" value="{{ end_date }}">
             <button type="submit" class="btn btn-secondary">Export to PDF</button>
         </form>
-        <a href="#" class="btn btn-success">Print</a>
-        <a href="#" class="btn btn-info">Email</a>
-        <!-- Add more options as needed -->
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 

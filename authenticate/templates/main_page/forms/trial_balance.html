@@ -20,7 +20,7 @@
         <button type="submit" class="btn btn-primary mt-2">Submit</button>
     </form>
 
-    {% if request.GET.start_date and request.GET.end_date %}
+    {% if request.GET.start_date or request.GET.end_date %}
     <!-- Journal entry accounts table -->
     <table class="table table-striped">
         <thead>

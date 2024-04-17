@@ -674,12 +674,6 @@ def journal_entry_page(request):
                 entry.approve()
                 # Perform the calculation here after the entry has been approved
                 account = entry.account
-                if entry.debit:
-                    account.debit += entry.debit
-                    account.balance += entry.debit
-                else:
-                    account.credit += entry.credit
-                    account.balance -= entry.credit
                 account.save()
 
         elif "reject" in request.POST:
@@ -729,6 +723,20 @@ def add_journal_entry(request):
             # Check if accounts exist in the Chart of Accounts
             account1 = ChartOfAccounts.objects.get(account_name=account1_name)
             account2 = ChartOfAccounts.objects.get(account_name=account2_name)
+
+            # Check if account1 is a normal side left account
+            if account1.normal_side != "Left":
+                messages.error(request, "Account 1 must be a normal side left account.")
+                return render(
+                    request, "main_page/journal_entry/add_journal_entry_page.html"
+                )
+            elif account2.normal_side != "Right":
+                messages.error(
+                    request, "Account 2 must be a normal side right account."
+                )
+                return render(
+                    request, "main_page/journal_entry/add_journal_entry_page.html"
+                )
 
             # Create a JournalEntryGroup
             group = JournalEntryGroup.objects.create()
