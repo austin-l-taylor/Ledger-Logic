@@ -1,7 +1,6 @@
 {% extends "main_page/base.html" %}
 
 {% block content %}
-
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12 text-center">
@@ -9,13 +8,160 @@
             <p class="lead mt-3">Empowering Financial Management</p>
         </div>
     </div>
+
     <div class="row mt-4">
         <div class="col-md-12 text-center">
             <h2>Hello, {{ user.username }}!</h2>
             <p>Explore the comprehensive features tailored for seamless financial tracking and management.</p>
         </div>
     </div>
+
+    <br/>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Financial Ratios</h3>
+            <ul>
+                <strong>Liquidity Ratios:</strong>
+                <li style="color: {{ ratios.current_ratio.color }}">
+                    Current Ratio: {{ ratios.current_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.acid_test_ratio.color }}">
+                    Acid-Test Ratio: {{ ratios.acid_test_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.cash_ratio.color }}">
+                    Cash Ratio: {{ ratios.cash_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.operating_cash_flow_ratio.color }}">
+                    Operating Cash Flow Ratio: {{ ratios.operating_cash_flow_ratio.value }}
+                </li>
+
+                <strong>Leverage Financial Ratios:</strong>
+                <li style="color: {{ ratios.debt_ratio.color }}">
+                    Debt Ratio: {{ ratios.debt_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.debt_to_equity_ratio.color }}">
+                    Debt to Equity Ratio: {{ ratios.debt_to_equity_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.interest_coverage_ratio.color }}">
+                    Interest Coverage Ratio: {{ ratios.interest_coverage_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.debt_service_coverage_ratio.color }}">
+                    Debt Service Coverage Ratio: {{ ratios.debt_service_coverage_ratio.value }}
+                </li>
+
+                <strong>Efficiency Ratios:</strong>
+                <li style="color: {{ ratios.asset_turnover_ratio.color }}">
+                    Asset Turnover Ratio: {{ ratios.asset_turnover_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.inventory_turnover_ratio.color }}">
+                    Inventory Turnover Ratio: {{ ratios.inventory_turnover_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.days_sales_in_inventory_ratio.color }}">
+                    Days Sales in Inventory Ratio: {{ ratios.days_sales_in_inventory_ratio.value }}
+                </li>
+
+                <strong>Profitability Ratios:</strong>
+                <li style="color: {{ ratios.gross_margin_ratio.color }}">
+                    Gross Margin Ratio: {{ ratios.gross_margin_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.operating_margin_ratio.color }}">
+                    Operating Margin Ratio: {{ ratios.operating_margin_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.return_on_assets_ratio.color }}">
+                    Return on Assets Ratio: {{ ratios.return_on_assets_ratio.value }}
+                </li>
+                <li style="color: {{ ratios.return_on_equity_ratio.color }}">
+                    Return on Equity Ratio: {{ ratios.return_on_equity_ratio.value }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Reduced the canvas size to make the chart smaller -->
+    <div class="row">
+        <div class="col-md-4"> <!-- Column for debt to equity ratio pie chart -->
+            <h3>Debt to Equity Ratio Chart</h3>
+            <canvas id="debtEquityRatioChart" width="150" height="150"></canvas> <!-- Reduced canvas size -->
+        </div>
+        <div class="col-md-4"> <!-- Column for interest coverage ratio bar chart -->
+            <h3>Interest Coverage Ratio Chart</h3>
+            <canvas id="interestCoverageRatioChart" width="150" height="150"></canvas> <!-- Reduced canvas size -->
+        </div>
+        <div class="col-md-4"> <!-- Column for asset turnover ratio bar chart -->
+            <h3>Asset Turnover Ratio Chart</h3>
+            <canvas id="assetTurnoverRatioChart" width="150" height="150"></canvas> <!-- Reduced canvas size -->
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Debt to Equity Ratio Pie Chart
+        var ctx1 = document.getElementById('debtEquityRatioChart').getContext('2d');
+        var chart1 = new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: ['Debt', 'Equity'],
+                datasets: [{
+                    label: 'Debt to Equity Ratio',
+                    data: [
+                        JSON.parse('{{ ratios.debt_to_equity_ratio.value }}'),
+                        1 - JSON.parse('{{ ratios.debt_to_equity_ratio.value }}')
+                    ],
+                    backgroundColor: ['#dc3545', '#28a745'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+
+        // Interest Coverage Ratio Bar Chart
+        var ctx2 = document.getElementById('interestCoverageRatioChart').getContext('2d');
+        var chart2 = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Interest Coverage'],
+                datasets: [{
+                    label: 'Interest Coverage Ratio',
+                    data: [
+                        JSON.parse('{{ ratios.interest_coverage_ratio.value }}')
+                    ],
+                    backgroundColor: ['#28a745'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+
+        // Asset Turnover Ratio Bar Chart
+        var ctx3 = document.getElementById('assetTurnoverRatioChart').getContext('2d');
+        var chart3 = new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: ['Asset Turnover'],
+                datasets: [{
+                    label: 'Asset Turnover Ratio',
+                    data: [
+                        JSON.parse('{{ ratios.asset_turnover_ratio.value }}')
+                    ],
+                    backgroundColor: ['#28a745'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    });
+</script>
+
+</br>
 
 {% endblock %}
 
@@ -25,7 +171,7 @@
     }
     .btn-lg {
         padding: 1rem 2rem; /* Larger buttons */
-        margin: 0.5rem;
+        margin: 0.5rem
     }
     .display-4 {
         font-weight: bold; /* Bold title */
@@ -34,7 +180,8 @@
     .lead {
         font-size: 1.5rem; /* Larger subtitle */
     }
+    .form-control {
+        padding: 10px;
+        margin: 10px
+    }
 </style>
-
-
-      
