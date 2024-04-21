@@ -17,7 +17,20 @@
     </div>
 
     <br/>
-
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Important Messages</h3>
+            {% if pending_entries %}
+                <ul>
+                    {% for entry in pending_entries %}
+                    <li>Journal entry pending approval: {{ entry.date }} - {{ entry.account.account_name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>You're all caught up! There are no pending entries.</p>
+            {% endif %}
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <h3>Financial Ratios</h3>

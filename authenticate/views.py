@@ -49,6 +49,15 @@ from io import BytesIO
 from xhtml2pdf import pisa
 
 
+
+def landing_page_view(request):
+    # Retrieve pending journal entries
+    pending_entries = JournalEntry.objects.filter(status='Pending')
+
+    # Render the landing page template with the pending entries
+    return render(request, 'landing_page.html', {'pending_entries': pending_entries})
+
+
 def serialize_account(instance):
     # Fetch related user instance
     user = instance.user_id
