@@ -20,15 +20,16 @@
     <div class="row mt-4">
         <div class="col-md-12">
             <h3>Important Messages</h3>
-            {% if pending_entries %}
-                <ul>
+            <ul>
+                {% if pending_entries %}
                     {% for entry in pending_entries %}
-                    <li>Journal entry pending approval: {{ entry.date }} - {{ entry.account.account_name }}</li>
+                        <!-- Display properties of the entry here -->
+                        <li> Pending Entries Needing Reviewed: {{ entry.date }} - {{ entry.account }}</li>
                     {% endfor %}
-                </ul>
-            {% else %}
-                <p>You're all caught up! There are no pending entries.</p>
-            {% endif %}
+                {% else %}
+                    <li>We are all caught up! No pending entries.</li>
+                {% endif %}
+            </ul>
         </div>
     </div>
     <div class="row">
