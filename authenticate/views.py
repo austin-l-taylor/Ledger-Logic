@@ -20,6 +20,7 @@ from django.contrib.auth.hashers import check_password
 from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 
 
+
 # Local imports
 from .forms import (
     SignUpForm,
@@ -1119,6 +1120,272 @@ def retained_earnings(request):
     return render(
         request, "main_page/forms/retained_earnings.html", {"accounts": accounts,"form": formSelection,}
     )
+
+
+def calculate_ratios():
+    """
+    Calculate various financial ratios based on Chart of Accounts data.
+    """
+
+    # Color variables for the ratios
+    GREEN = "#28a745"
+    YELLOW = "#ffc107"
+    RED = "#dc3545"
+
+    # Retrieve all accounts
+    accounts = ChartOfAccounts.objects.all()
+
+    # Initialize variables for ratio calculations
+    current_assets = 0
+    current_liabilities = 0
+    cash = 0
+    operating_cash_flow = 0
+    total_liabilities = 0
+    total_assets = 0
+    shareholder_equity = 0
+    operating_income = 0
+    interest_expenses = 0
+    total_debt_service = 0
+    net_sales = 0
+    cost_of_goods_sold = 0
+    gross_profit = 0
+    net_income = 0
+    inventory = 0
+    net_credit_sales = 0
+    average_accounts_receivable = 0
+
+    # Assign values based on account name or category
+    for account in accounts:
+        if account.account_name == "Cash":
+            cash = round(account.balance, 2)
+        elif account.account_name == "Operating Cash":
+            operating_cash_flow = round(account.balance, 2)
+        elif account.account_name == "Total Debt Service":
+            total_debt_service = round(account.balance, 2)
+        elif account.account_name == "Operating Income":
+            operating_income = round(account.balance, 2)
+        elif account.account_name == "Interest Expense":
+            interest_expenses = round(account.balance, 2)
+        elif account.account_name == "Net Sales":
+            net_sales = round(account.balance, 2)
+        elif account.account_name == "Cost of Goods Sold":
+            cost_of_goods_sold = round(account.balance, 2)
+        elif account.account_name == "Gross Profit":
+            gross_profit = round(account.balance, 2)
+        elif account.account_name == "Net Income":
+            net_income = round(account.balance, 2)
+        elif account.account_name == "Inventory":
+            inventory = round(account.balance, 2)
+        elif account.account_category == "Assets":
+            current_assets += round(account.balance, 2)
+            total_assets += round(account.balance, 2)
+        elif account.account_category == "Liabilities":
+            current_liabilities += round(account.balance, 2)
+            total_liabilities += round(account.balance, 2)
+        elif account.account_category == "Equity":
+            shareholder_equity += round(account.balance, 2)
+
+    # Calculate ratios and round to two decimal places
+    ratios = {}
+
+    # Liquidity Ratios
+    if current_liabilities != 0:
+        current_ratio = round(current_assets / current_liabilities, 2)
+        acid_test_ratio = round((current_assets - inventory) / current_liabilities, 2)
+        cash_ratio = round(cash / current_liabilities, 2)
+        operating_cash_flow_ratio = round(operating_cash_flow / current_liabilities, 2)
+
+        ratios["current_ratio"] = {
+            "value": current_ratio,
+            "color": (
+                GREEN if current_ratio >= 1.5 else YELLOW if current_ratio >= 1 else RED
+            ),
+        }
+        ratios["acid_test_ratio"] = {
+            "value": acid_test_ratio,
+            "color": (
+                GREEN
+                if acid_test_ratio >= 1
+                else YELLOW if acid_test_ratio >= 0.5 else RED
+            ),
+        }
+        ratios["cash_ratio"] = {
+            "value": cash_ratio,
+            "color": (
+                GREEN if cash_ratio >= 0.5 else YELLOW if cash_ratio >= 0.2 else RED
+            ),
+        }
+        ratios["operating_cash_flow_ratio"] = {
+            "value": operating_cash_flow_ratio,
+            "color": (
+                GREEN
+                if operating_cash_flow_ratio >= 1
+                else YELLOW if operating_cash_flow_ratio >= 0.5 else RED
+            ),
+        }
+
+    # Leverage Financial Ratios
+    if total_assets != 0 and total_liabilities != 0:
+        debt_ratio = round(total_liabilities / total_assets, 2)
+        debt_to_equity_ratio = round(total_liabilities / shareholder_equity, 2)
+        interest_coverage_ratio = (
+            round(operating_income / interest_expenses, 2) if interest_expenses else 0
+        )
+        debt_service_coverage_ratio = (
+            round(operating_income / total_debt_service, 2) if total_debt_service else 0
+        )
+
+        ratios["debt_ratio"] = {
+            "value": debt_ratio,
+            "color": (
+                GREEN if debt_ratio <= 0.5 else YELLOW if debt_ratio <= 0.6 else RED
+            ),
+        }
+        ratios["debt_to_equity_ratio"] = {
+            "value": debt_to_equity_ratio,
+            "color": (
+                GREEN
+                if debt_to_equity_ratio <= 0.7
+                else YELLOW if debt_to_equity_ratio <= 1 else RED
+            ),
+        }
+        ratios["interest_coverage_ratio"] = {
+            "value": interest_coverage_ratio,
+            "color": (
+                GREEN
+                if interest_coverage_ratio >= 3
+                else YELLOW if interest_coverage_ratio >= 1.5 else RED
+            ),
+        }
+        ratios["debt_service_coverage_ratio"] = {
+            "value": debt_service_coverage_ratio,
+            "color": (
+                GREEN
+                if debt_service_coverage_ratio >= 1
+                else YELLOW if debt_service_coverage_ratio >= 0.5 else RED
+            ),
+        }
+
+    # Efficiency Ratios
+    if total_assets != 0:
+        asset_turnover_ratio = round(net_sales / total_assets, 2)
+        inventory_turnover_ratio = (
+            round(cost_of_goods_sold / inventory, 2) if inventory != 0 else 0
+        )
+        days_sales_in_inventory_ratio = (
+            round(365 / inventory_turnover_ratio, 2)
+            if inventory_turnover_ratio != 0
+            else 0
+        )
+
+        ratios["asset_turnover_ratio"] = {
+            "value": asset_turnover_ratio,
+            "color": (
+                GREEN
+                if asset_turnover_ratio >= 1
+                else YELLOW if asset_turnover_ratio >= 0.5 else RED
+            ),
+        }
+        ratios["inventory_turnover_ratio"] = {
+            "value": inventory_turnover_ratio,
+            "color": (
+                GREEN
+                if inventory_turnover_ratio >= 6
+                else YELLOW if inventory_turnover_ratio >= 3 else RED
+            ),
+        }
+        ratios["days_sales_in_inventory_ratio"] = {
+            "value": days_sales_in_inventory_ratio,
+            "color": (
+                GREEN
+                if days_sales_in_inventory_ratio <= 60
+                else YELLOW if days_sales_in_inventory_ratio <= 120 else RED
+            ),
+        }
+
+    if shareholder_equity != 0:
+        receivables_turnover_ratio = (
+            round(net_credit_sales / average_accounts_receivable, 2)
+            if average_accounts_receivable != 0
+            else 0
+        )
+
+        ratios["receivables_turnover_ratio"] = {
+            "value": receivables_turnover_ratio,
+            "color": (
+                GREEN
+                if receivables_turnover_ratio >= 10
+                else YELLOW if receivables_turnover_ratio >= 7 else RED
+            ),
+        }
+
+    # Profitability Ratios
+    if net_sales != 0:
+        gross_margin_ratio = round(gross_profit / net_sales, 2)
+        operating_margin_ratio = round(operating_income / net_sales, 2)
+
+        ratios["gross_margin_ratio"] = {
+            "value": gross_margin_ratio,
+            "color": (
+                GREEN
+                if gross_margin_ratio >= 0.4
+                else YELLOW if gross_margin_ratio >= 0.2 else RED
+            ),
+        }
+        ratios["operating_margin_ratio"] = {
+            "value": operating_margin_ratio,
+            "color": (
+                GREEN
+                if operating_margin_ratio >= 0.15
+                else YELLOW if operating_margin_ratio >= 0.05 else RED
+            ),
+        }
+
+    if total_assets != 0:
+        return_on_assets_ratio = round(net_income / total_assets, 2)
+        ratios["return_on_assets_ratio"] = {
+            "value": return_on_assets_ratio,
+            "color": (
+                GREEN
+                if return_on_assets_ratio >= 0.03
+                else YELLOW if return_on_assets_ratio >= 0.01 else RED
+            ),
+        }
+
+    if shareholder_equity != 0:
+        return_on_equity_ratio = round(net_income / shareholder_equity, 2)
+
+        ratios["return_on_equity_ratio"] = {
+            "value": return_on_equity_ratio,
+            "color": (
+                GREEN
+                if return_on_equity_ratio >= 0.1
+                else YELLOW if return_on_equity_ratio >= 0.05 else RED
+            ),
+        }
+
+    return ratios
+
+
+def journal_entry_data(request):
+    # Retrieve pending journal entries
+    pending_entries = JournalEntry.objects.filter(status="Pending")
+    print(pending_entries)
+    # Return the QuerySet directly
+    return pending_entries
+
+
+def home(request):
+    """
+    Renders the home page with financial ratios.
+    """
+    pending_entries = journal_entry_data(request)
+    ratios = calculate_ratios()  # Call the function to get the ratios
+    context = {
+        "ratios": ratios,
+        "pending_entries": pending_entries,
+    }
+    return render(request, "main_page/home.html", context)
 
 def email_report(request):
     if request.method == "POST":
