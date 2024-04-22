@@ -21,6 +21,7 @@
     </form>
 
     <!-- Assets Section -->
+    {% if request.GET.start_date or request.GET.end_date %}
     <table class="table table-striped">
         <thead>
             <tr>
@@ -30,11 +31,11 @@
             </tr>
         </thead>
         <tbody>
-            {% for account in asset_accounts %}
+            {% for entry in asset_entries %}
             <tr>
-                <td>{{ account.account_name }}</td>
-                <td>{{ account.total_debit }}</td>
-                <td>{{ account.total_credit }}</td>
+                <td>{{ entry.account.account_name }}</td>
+                <td>{{ entry.debit }}</td>
+                <td>{{ entry.credit }}</td>
             </tr>
             {% empty %}
             <tr>
@@ -59,11 +60,11 @@
             </tr>
         </thead>
         <tbody>
-            {% for account in liability_accounts %}
+            {% for entry in liability_entries %}
             <tr>
-                <td>{{ account.account_name }}</td>
-                <td>{{ account.total_debit }}</td>
-                <td>{{ account.total_credit }}</td>
+                <td>{{ entry.account.account_name }}</td>
+                <td>{{ entry.debit }}</td>
+                <td>{{ entry.credit }}</td>
             </tr>
             {% empty %}
             <tr>
@@ -85,11 +86,11 @@
             </tr>
         </thead>
         <tbody>
-            {% for account in equity_accounts %}
+            {% for entry in equity_entries %}
             <tr>
-                <td>{{ account.account_name }}</td>
-                <td>{{ account.total_debit }}</td>
-                <td>{{ account.total_credit }}</td>
+                <td>{{ entry.account.account_name }}</td>
+                <td>{{ entry.debit }}</td>
+                <td>{{ entry.credit }}</td>
             </tr>
             {% empty %}
             <tr>
@@ -125,5 +126,6 @@
             <button type="submit" class="btn btn-secondary">Export to PDF</button>
         </form>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
