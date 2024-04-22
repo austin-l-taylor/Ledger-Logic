@@ -1076,7 +1076,7 @@ def retained_earnings(request):
     """
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
-    formSelection = ContactForm
+   
 
     if start_date and end_date:
         journal_entries = JournalEntry.objects.filter(
@@ -1109,22 +1109,22 @@ def retained_earnings(request):
     # Calculate net income and retained earnings
     net_income = total_revenue - total_expenses
     retained_earnings = net_income - total_dividends
-
+    formSelection = ContactForm
     if request.method == "POST":
             form = ContactForm(request.POST)
             if form.is_valid():
                 email = form.cleaned_data.get("email")
                 subject = form.cleaned_data.get("subject")
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                message = request.POST.get('document.Body')
-
+                body_unicode = request.body.decode('utf-8')
+                body = json.loads(body_unicode)
+                content = body['content']
                 full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
-                    {message}
+                    {content}
                     """
                 msg = send_mail(subject, full_message, email, ["myin1@students.kennesaw.edu"])
-                msg.attach_alternative(message, 'application/pdf')
+                msg.attach_alternative(content, 'application/pdf')
                 msg.send()
                 messages.success(request, "Email sent!")
                 return HttpResponseRedirect(request.path_info)
@@ -1170,16 +1170,6 @@ def export_to_pdf(request):
     else:
         return HttpResponse("Error generating PDF", status=500)
 
-
-def retained_earnings(request):
-    """
-    Definition that handles the retained earnings page.
-    """
-    formSelection = ContactForm
-    accounts = ChartOfAccounts.objects.all()
-    return render(
-        request, "main_page/forms/retained_earnings.html", {"accounts": accounts,"form": formSelection,}
-    )
 
 
 def calculate_ratios():
@@ -1464,5 +1454,4 @@ def email_report(request):
             msg = EmailMultiAlternatives(subject, full_message, email, ["myin1@students.kennesaw.edu"])
             msg.attach_alternative('document.pdf', message, 'application/pdf')
             msg.send()
-    form = ContactForm()
     return HttpResponse("Email sent successfully!")
