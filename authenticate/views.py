@@ -1000,7 +1000,7 @@ def balance_sheet(request):
 
     if start_date and end_date:
         journal_entries = JournalEntry.objects.filter(
-            date__range=[start_date, end_date]
+            Q(date__gte=start_date) & Q(date__lte=end_date)
         )
     elif start_date:
         journal_entries = JournalEntry.objects.filter(date__gte=start_date)
@@ -1012,38 +1012,23 @@ def balance_sheet(request):
     # Define categories
     assets_categories = ["Assets"]
     liabilities_categories = ["Liabilities"]
-    equity_categories = ["Stockholders' Equity"]
+    equity_categories = ["Equity"]
 
-    # Filter accounts based on categories
-    asset_accounts = (
-        ChartOfAccounts.objects.filter(account_category__in=assets_categories)
-        .values("account_name")
-        .annotate(total_debit=Sum("debit"), total_credit=Sum("credit"))
+    # Filter journal entries based on categories
+    asset_entries = journal_entries.filter(
+        account__account_category__in=assets_categories
     )
-
-    liability_accounts = (
-        ChartOfAccounts.objects.filter(account_category__in=liabilities_categories)
-        .values("account_name")
-        .annotate(total_debit=Sum("debit"), total_credit=Sum("credit"))
+    liability_entries = journal_entries.filter(
+        account__account_category__in=liabilities_categories
     )
-
-    equity_accounts = (
-        ChartOfAccounts.objects.filter(account_category__in=equity_categories)
-        .values("account_name")
-        .annotate(total_debit=Sum("debit"), total_credit=Sum("credit"))
+    equity_entries = journal_entries.filter(
+        account__account_category__in=equity_categories
     )
 
     # Calculate totals
-    total_assets = sum(
-        account["total_debit"] - account["total_credit"] for account in asset_accounts
-    )
-    total_liabilities = sum(
-        account["total_credit"] - account["total_debit"]
-        for account in liability_accounts
-    )
-    total_equity = sum(
-        account["total_credit"] - account["total_debit"] for account in equity_accounts
-    )
+    total_assets = sum(entry.debit - entry.credit for entry in asset_entries)
+    total_liabilities = sum(entry.credit - entry.debit for entry in liability_entries)
+    total_equity = sum(entry.credit - entry.debit for entry in equity_entries)
 
     # Total Liabilities and Stockholders' Equity
     total_liabilities_and_equity = total_liabilities + total_equity
@@ -1069,13 +1054,66 @@ def balance_sheet(request):
         request,
         "main_page/forms/balance_sheet.html",
         {
-            "asset_accounts": asset_accounts,
-            "liability_accounts": liability_accounts,
-            "equity_accounts": equity_accounts,
+            "asset_entries": asset_entries,
+            "liability_entries": liability_entries,
+            "equity_entries": equity_entries,
             "total_assets": total_assets,
             "total_liabilities": total_liabilities,
             "total_equity": total_equity,
             "total_liabilities_and_equity": total_liabilities_and_equity,
+            "start_date": start_date,
+            "end_date": end_date,
+            "journal_entries": journal_entries,
+        },
+    )
+
+
+def retained_earnings(request):
+    """
+    Definition that handles the retained earnings page.
+    """
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    if start_date and end_date:
+        journal_entries = JournalEntry.objects.filter(
+            Q(date__gte=start_date) & Q(date__lte=end_date)
+        )
+    elif start_date:
+        journal_entries = JournalEntry.objects.filter(date__gte=start_date)
+    elif end_date:
+        journal_entries = JournalEntry.objects.filter(date__lte=end_date)
+    else:
+        journal_entries = JournalEntry.objects.all()
+
+    # Define accounts
+    revenue_accounts = ["Interest Revenue", "Service Revenue"]
+    expense_accounts = ["Supplies Expense", "Salaries Expense", "Utilities Expense"]
+    dividends_account = ["Dividends"]
+
+    # Filter journal entries based on accounts
+    revenue_entries = journal_entries.filter(account__account_name__in=revenue_accounts)
+    expense_entries = journal_entries.filter(account__account_name__in=expense_accounts)
+    dividends_entries = journal_entries.filter(
+        account__account_name__in=dividends_account
+    )
+
+    # Calculate totals
+    total_revenue = sum(entry.credit for entry in revenue_entries)
+    total_expenses = sum(entry.debit for entry in expense_entries)
+    total_dividends = sum(entry.debit for entry in dividends_entries)
+
+    # Calculate net income and retained earnings
+    net_income = total_revenue - total_expenses
+    retained_earnings = net_income - total_dividends
+
+    return render(
+        request,
+        "main_page/forms/retained_earnings.html",
+        {
+            "net_income": net_income,
+            "total_dividends": total_dividends,
+            "retained_earnings": retained_earnings,
             "start_date": start_date,
             "end_date": end_date,
             "form": formSelection,
