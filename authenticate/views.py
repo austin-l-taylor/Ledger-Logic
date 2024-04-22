@@ -1064,6 +1064,7 @@ def balance_sheet(request):
             "start_date": start_date,
             "end_date": end_date,
             "journal_entries": journal_entries,
+            "form": formSelection,
         },
     )
 
@@ -1074,6 +1075,7 @@ def retained_earnings(request):
     """
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
+    formSelection = ContactForm
 
     if start_date and end_date:
         journal_entries = JournalEntry.objects.filter(
