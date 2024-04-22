@@ -1050,6 +1050,7 @@ def balance_sheet(request):
                 msg.send()
                 messages.success(request, "Email sent!")
                 return HttpResponseRedirect(request.path_info)
+            
     return render(
         request,
         "main_page/forms/balance_sheet.html",
@@ -1109,6 +1110,25 @@ def retained_earnings(request):
     net_income = total_revenue - total_expenses
     retained_earnings = net_income - total_dividends
 
+    if request.method == "POST":
+            form = ContactForm(request.POST)
+            if form.is_valid():
+                email = form.cleaned_data.get("email")
+                subject = form.cleaned_data.get("subject")
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                message = request.POST.get('document.Body')
+
+                full_message = f"""
+                    Received message below from {email}, {subject}
+                    ________________________
+                    {message}
+                    """
+                msg = send_mail(subject, full_message, email, ["myin1@students.kennesaw.edu"])
+                msg.attach_alternative(message, 'application/pdf')
+                msg.send()
+                messages.success(request, "Email sent!")
+                return HttpResponseRedirect(request.path_info)
+            
     return render(
         request,
         "main_page/forms/retained_earnings.html",
