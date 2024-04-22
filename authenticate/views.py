@@ -1171,17 +1171,6 @@ def export_to_pdf(request):
         return HttpResponse("Error generating PDF", status=500)
 
 
-def retained_earnings(request):
-    """
-    Definition that handles the retained earnings page.
-    """
-    formSelection = ContactForm
-    accounts = ChartOfAccounts.objects.all()
-    return render(
-        request, "main_page/forms/retained_earnings.html", {"accounts": accounts,"form": formSelection,}
-    )
-
-
 def calculate_ratios():
     """
     Calculate various financial ratios based on Chart of Accounts data.
