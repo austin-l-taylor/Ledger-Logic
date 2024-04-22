@@ -19,6 +19,7 @@ from django.db.models import Sum, Q
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 
+
 # Local imports
 from .forms import (
     SignUpForm,
@@ -432,6 +433,7 @@ def chart_of_accounts(request):
         formSelection = ContactFormAdmin
     else:
         formSelection = ContactForm
+
     selected_account = request.GET.get("selected_account")
     if selected_account:
         return redirect("ledger", account_id=selected_account)
@@ -882,6 +884,7 @@ def trial_balance(request):
     """
     Definition that handles the trial balance page.
     """
+    formSelection = ContactForm
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
@@ -912,6 +915,7 @@ def trial_balance(request):
             "accounts": accounts,
             "total_debit": total_debit,
             "total_credit": total_credit,
+            "form": formSelection,
         },
     )
 
@@ -920,6 +924,7 @@ def income_statement(request):
     """
     View for the Income Statement page.
     """
+    formSelection = ContactForm
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
@@ -979,6 +984,7 @@ def income_statement(request):
             "net_income": net_income,
             "start_date": start_date,
             "end_date": end_date,
+            "form": formSelection,
         },
     )
 
@@ -987,6 +993,7 @@ def balance_sheet(request):
     """
     View for the balance sheet page.
     """
+    formSelection = ContactForm
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
@@ -1039,7 +1046,24 @@ def balance_sheet(request):
 
     # Total Liabilities and Stockholders' Equity
     total_liabilities_and_equity = total_liabilities + total_equity
+    if request.method == "POST":
+            form = ContactForm(request.POST)
+            if form.is_valid():
+                email = form.cleaned_data.get("email")
+                subject = form.cleaned_data.get("subject")
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                message = request.POST.get('document.Body')
 
+                full_message = f"""
+                    Received message below from {email}, {subject}
+                    ________________________
+                    {message}
+                    """
+                msg = send_mail(subject, full_message, email, ["myin1@students.kennesaw.edu"])
+                msg.attach_alternative(message, 'application/pdf')
+                msg.send()
+                messages.success(request, "Email sent!")
+                return HttpResponseRedirect(request.path_info)
     return render(
         request,
         "main_page/forms/balance_sheet.html",
@@ -1053,6 +1077,7 @@ def balance_sheet(request):
             "total_liabilities_and_equity": total_liabilities_and_equity,
             "start_date": start_date,
             "end_date": end_date,
+            "form": formSelection,
         },
     )
 
@@ -1089,7 +1114,28 @@ def retained_earnings(request):
     """
     Definition that handles the retained earnings page.
     """
+    formSelection = ContactForm
     accounts = ChartOfAccounts.objects.all()
     return render(
-        request, "main_page/forms/retained_earnings.html", {"accounts": accounts}
+        request, "main_page/forms/retained_earnings.html", {"accounts": accounts,"form": formSelection,}
     )
+
+def email_report(request):
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            message = request.POST.get('document.Body')
+
+            full_message = f"""
+                Received message below from {email}, {subject}
+                ________________________
+                {message}
+                """
+            msg = EmailMultiAlternatives(subject, full_message, email, ["myin1@students.kennesaw.edu"])
+            msg.attach_alternative('document.pdf', message, 'application/pdf')
+            msg.send()
+    form = ContactForm()
+    return HttpResponse("Email sent successfully!")
