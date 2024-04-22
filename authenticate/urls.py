@@ -37,4 +37,5 @@ urlpatterns = [
     path("balance-sheet/", views.balance_sheet, name="balance_sheet"),
     path("retained-earnings/", views.retained_earnings, name="retained_earnings"),
     path("export_to_pdf/", views.export_to_pdf, name="export_to_pdf"),
+    path('email_report/', views.email_report, name='email_report'),
 ]
