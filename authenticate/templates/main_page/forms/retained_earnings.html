@@ -45,11 +45,22 @@
         </tbody>
     </table>
     <!-- Export to PDF form -->
-    <form method="get" action="{% url 'export_to_pdf' %}" class="mb-4">
-        <input type="hidden" name="start_date" value="{{ request.GET.start_date }}">
-        <input type="hidden" name="end_date" value="{{ request.GET.end_date }}">
-        <button type="submit" class="btn btn-secondary">Export to PDF</button>
-    </form>
+    <button type="submit" class="btn btn-secondary" onclick="saveAsPDF()">Export to PDF</button>
+    <button class="collapsible">Email Report</button>
+    <div class="content">
+        <form method="post">
+            {% include 'main_page/contact.html' %}
+        </form>
+</div>
+
+    <script>
+    function saveAsPDF(){
+        var element = document.body;
+        html2pdf()
+            .from(element)
+            .save();
+    }
+    </script>
     {% endif %}
 </div>
 {% endblock %}

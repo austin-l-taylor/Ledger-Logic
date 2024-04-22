@@ -118,7 +118,7 @@
             </tr>
         </tbody>
     </table>
-    {% endif %}
+
     <button class="btn btn-success" onclick="saveAsPDF()">Export to PDF</button>
     <button class="collapsible">Email Report</button>
     <div class="content">
@@ -126,10 +126,8 @@
             {% include 'main_page/contact.html' %}
 
         </form>
-</div>
-    </div>
+    </div>    
 
-    
     <script>
         function saveAsPDF(){
             var element = document.body;
@@ -137,8 +135,8 @@
                 .from(element)
                 .save();
         }
-</script>
-
+    </script>
+    {% endif %}
 </div>
 
 {% endblock %}
