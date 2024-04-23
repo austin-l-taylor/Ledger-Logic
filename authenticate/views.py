@@ -20,7 +20,6 @@ from django.contrib.auth.hashers import check_password
 from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 
 
-
 # Local imports
 from .forms import (
     SignUpForm,
@@ -91,9 +90,6 @@ def serialize_account(instance):
     # Serialize data using Django's JSON encoder
     serialized_json = json.dumps(serialized_data, cls=DjangoJSONEncoder)
     return serialized_json
-
-
-from django.db.models import Q
 
 
 def login_user(request):
@@ -1033,24 +1029,26 @@ def balance_sheet(request):
     # Total Liabilities and Stockholders' Equity
     total_liabilities_and_equity = total_liabilities + total_equity
     if request.method == "POST":
-            form = ContactForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data.get("email")
-                subject = form.cleaned_data.get("subject")
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                message = request.POST.get('document.Body')
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            from_email = (settings.DEFAULT_FROM_EMAIL,)
+            message = request.POST.get("document.Body")
 
-                full_message = f"""
+            full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
                     {message}
                     """
-                msg = send_mail(subject, full_message, email, ["myin1@students.kennesaw.edu"])
-                msg.attach_alternative(message, 'application/pdf')
-                msg.send()
-                messages.success(request, "Email sent!")
-                return HttpResponseRedirect(request.path_info)
-            
+            msg = send_mail(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+            msg.attach_alternative(message, "application/pdf")
+            msg.send()
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
+
     return render(
         request,
         "main_page/forms/balance_sheet.html",
@@ -1076,7 +1074,6 @@ def retained_earnings(request):
     """
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
-   
 
     if start_date and end_date:
         journal_entries = JournalEntry.objects.filter(
@@ -1111,24 +1108,26 @@ def retained_earnings(request):
     retained_earnings = net_income - total_dividends
     formSelection = ContactForm
     if request.method == "POST":
-            form = ContactForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data.get("email")
-                subject = form.cleaned_data.get("subject")
-                body_unicode = request.body.decode('utf-8')
-                body = json.loads(body_unicode)
-                content = body['content']
-                full_message = f"""
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            body_unicode = request.body.decode("utf-8")
+            body = json.loads(body_unicode)
+            content = body["content"]
+            full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
                     {content}
                     """
-                msg = send_mail(subject, full_message, email, ["myin1@students.kennesaw.edu"])
-                msg.attach_alternative(content, 'application/pdf')
-                msg.send()
-                messages.success(request, "Email sent!")
-                return HttpResponseRedirect(request.path_info)
-            
+            msg = send_mail(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+            msg.attach_alternative(content, "application/pdf")
+            msg.send()
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
+
     return render(
         request,
         "main_page/forms/retained_earnings.html",
@@ -1169,7 +1168,6 @@ def export_to_pdf(request):
         return FileResponse(result, as_attachment=True, filename="report.pdf")
     else:
         return HttpResponse("Error generating PDF", status=500)
-
 
 
 def calculate_ratios():
@@ -1437,21 +1435,24 @@ def home(request):
     }
     return render(request, "main_page/home.html", context)
 
+
 def email_report(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get("email")
             subject = form.cleaned_data.get("subject")
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            message = request.POST.get('document.Body')
+            from_email = (settings.DEFAULT_FROM_EMAIL,)
+            message = request.POST.get("document.Body")
 
             full_message = f"""
                 Received message below from {email}, {subject}
                 ________________________
                 {message}
                 """
-            msg = EmailMultiAlternatives(subject, full_message, email, ["myin1@students.kennesaw.edu"])
-            msg.attach_alternative('document.pdf', message, 'application/pdf')
+            msg = EmailMultiAlternatives(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+            msg.attach_alternative("document.pdf", message, "application/pdf")
             msg.send()
     return HttpResponse("Email sent successfully!")

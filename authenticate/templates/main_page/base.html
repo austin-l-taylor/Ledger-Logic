@@ -7,31 +7,6 @@
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/2.0.2/css/dataTables.dataTables.min.css">
     <title>Document</title>
     <style>
-        .collapsible {
-            background-color: #198754;
-            color: white;
-            cursor: pointer;
-            padding: 10px;
-            line-height: 1.5;
-            font-weight: 400;
-            font-size: 1rem;
-            border: none;
-            text-align: left;
-            outline: none;
-            font-size: 15px;
-            }
-
-        .active, .collapsible:hover {
-            background-color: #555;
-            }
-
-        .content {
-            padding: 0 18px;
-            display: none;
-            overflow: hidden;
-            background-color: #f1f1f1;
-        }
-        
         .navbar-brand {
             margin-right: 45px; /* Adjust the margin between the LedgerLogic brand and toggle button */
         }
@@ -56,6 +31,7 @@
             margin-left: 10px; /* Adjust margin to separate from logout button */
             width: 55px;
             height: 55px;
+            border-radius: 50%; /* Make the image round */
         }
         .nav-center {
             display: flex; /* Enable flex layout */
@@ -68,8 +44,16 @@
         tr.odd {
             background-color: #f2f2f2; /* light gray */
         }
+        .bs-caret-hide::after {
+            display: none;
+        }
+        .user-image {
+            margin-left: 10px; /* Adjust margin to separate from logout button */
+            width: 60px; /* Increase from 55px to 70px */
+            height: 60px; /* Increase from 55px to 70px */
+            border-radius: 50%; /* Make the image round */
+        }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -108,17 +92,24 @@
                     {% endif %}
                 </ul>
 
-                <!-- Right Aligned Navbar Items -->
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     {% if user.is_authenticated %}
-                        <li class="nav-item" title="get help">
-                            <a class="nav-link" href="{% url 'help' %}">Help?</a>
-                        </li>
-                        <li class="nav-item" title="logout of account">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                        </li>
-                        <li class="nav-item">
-                            <img src="https://i.imgur.com/phoWM6F.jpg" alt="User Image" class="user-image">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle bs-caret-hide" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span style="display: inline-flex; align-items: center; text-decoration: underline;">
+                                    {{ user.username }}
+                                    <img src="https://i.imgur.com/phoWM6F.jpg" alt="User Image" class="user-image">
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{% url 'help' %}">Help?</a></li>
+                                {% if user.is_staff %}
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin Portal</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                                {% block extra_nav_items %}
+                                {% endblock %}
+                            </ul>
                         </li>
                     {% else %}
                         <li class="nav-item" title="login to account">
@@ -152,22 +143,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
     <script src="//cdn.datatables.net/2.0.2/js/dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-    <script>
-        var coll = document.getElementsByClassName("collapsible");
-        var i;
-        
-        for (i = 0; i < coll.length; i++) {
-          coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.display === "block") {
-              content.style.display = "none";
-            } else {
-              content.style.display = "block";
-            }
-          });
-        }
-    </script>
+   
     {% block search_tool %}
     <script type="text/javascript">
     $(document).ready(function(){

@@ -17,7 +17,7 @@
                 <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
             </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+        <button type="submit" class="btn btn-success mt-2">Submit</button>
     </form>
 
     {% if request.GET.start_date or request.GET.end_date %}
@@ -46,7 +46,7 @@
     </table>
     <!-- Export to PDF form -->
     <button type="submit" class="btn btn-secondary" onclick="saveAsPDF()">Export to PDF</button>
-    <button class="collapsible">Email Report</button>
+    <button class="collapsible btn btn-success">Email Report</button>
     <div class="content">
         <form method="post">
             {% include 'main_page/contact.html' %}

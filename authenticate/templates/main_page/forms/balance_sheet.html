@@ -18,7 +18,7 @@
                 <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
             </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+        <button type="submit" class="btn btn-success mt-2">Submit</button>
     </form>
 
     <!-- Assets Section -->
@@ -120,7 +120,7 @@
     </table>
 
     <button class="btn btn-success" onclick="saveAsPDF()">Export to PDF</button>
-    <button class="collapsible">Email Report</button>
+    <button class="collapsible btn btn-success">Email Report</button>
     <div class="content">
         <form method="post">
             {% include 'main_page/contact.html' %}

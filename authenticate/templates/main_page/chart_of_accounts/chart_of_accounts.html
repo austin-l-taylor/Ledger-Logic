@@ -1,10 +1,12 @@
 <!-- This is the page for THE chart of accounts -->
 {% extends "main_page/base.html" %}
 
+{% block extra_nav_items %}
+    <li><button id="email-id" class="dropdown-item">Send Email</button></li>
+{% endblock %}
+
 {%block content%}
 <body>
-    <button id="popout-btn">Send Email</button>
-
 <!-- Pop-Out Bar Container (initially hidden) -->
 <div id="popout-container" class="popout-container">
     <button id="close-popout-btn">&times;</button> 
@@ -97,7 +99,7 @@
 </script>
 <script>
     // Get pop-out button and container
-    var popoutBtn = document.getElementById('popout-btn');
+    var popoutBtn = document.getElementById('email-id');
     var popoutContainer = document.getElementById('popout-container');
     var closePopoutBtn = document.getElementById('close-popout-btn');
 
