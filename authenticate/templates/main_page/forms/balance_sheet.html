@@ -118,7 +118,8 @@
             </tr>
         </tbody>
     </table>
-
+</div>
+<div>
     <button class="btn btn-success" onclick="saveAsPDF()">Export to PDF</button>
     <button class="collapsible btn btn-success">Email Report</button>
     <div class="content">
@@ -130,7 +131,7 @@
 
     <script>
         function saveAsPDF(){
-            var element = document.body;
+            var element = document.getElementById("BalanceSheet");
             html2pdf()
                 .from(element)
                 .save();
