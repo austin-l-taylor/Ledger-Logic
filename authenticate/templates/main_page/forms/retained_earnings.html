@@ -45,6 +45,10 @@
             </tr>
         </tbody>
     </table>
+</div>
+
+
+<div>  
     <!-- Export to PDF form -->
     <button class="btn btn-success" onclick="saveAsPDF()">Export to PDF</button>
     <button class="collapsible btn btn-success">Email Report</button>
@@ -52,10 +56,7 @@
         <form method="post">
             {% include 'main_page/contact.html' %}
         </form>
-</div>
-
-
-<div>    
+  
     <script>
     function saveAsPDF(){
         var element = document.getElementById("RetainedEarnings");

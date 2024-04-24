@@ -922,16 +922,35 @@ def trial_balance(request):
     total_debit = sum(account["total_debit"] for account in accounts)
     total_credit = sum(account["total_credit"] for account in accounts)
 
-    return render(
-        request,
-        "main_page/forms/trial_balance.html",
-        {
+    context = {
             "accounts": accounts,
             "total_debit": total_debit,
             "total_credit": total_credit,
             "form": formSelection,
-        },
-    )
+    }
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            template = get_template("main_page/forms/trial_balance.html")
+            html = template.render(context)
+            #body = json.loads(html)        
+            full_message = f"""
+                    Received message below from {email}, {subject}
+                    ________________________
+                    {context}
+                    """
+            msg = EmailMultiAlternatives(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+
+            msg.attach(html,"application/pdf" )
+            msg.send()
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
+
+    return render(request, "main_page/forms/trial_balance.html", context)
 
 
 def income_statement(request):
@@ -987,10 +1006,7 @@ def income_statement(request):
     # Calculate net income
     net_income = total_revenue - total_expenses
 
-    return render(
-        request,
-        "main_page/forms/income_statement.html",
-        {
+    context = {
             "revenue_accounts": revenue_accounts,
             "expense_accounts": expense_accounts,
             "total_revenue": total_revenue,
@@ -999,8 +1015,30 @@ def income_statement(request):
             "start_date": start_date,
             "end_date": end_date,
             "form": formSelection,
-        },
-    )
+    }
+
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            template = get_template("main_page/forms/income_statement.html")
+            html = template.render(context)
+            #body = json.loads(html)        
+            full_message = f"""
+                    Received message below from {email}, {subject}
+                    ________________________
+                    {context}
+                    """
+            msg = EmailMultiAlternatives(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+
+            msg.attach(html,"application/pdf" )
+            msg.send()
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
+    return render(request,"main_page/forms/income_statement.html", context)
 
 
 def balance_sheet(request):
@@ -1045,31 +1083,8 @@ def balance_sheet(request):
 
     # Total Liabilities and Stockholders' Equity
     total_liabilities_and_equity = total_liabilities + total_equity
-    if request.method == "POST":
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get("email")
-            subject = form.cleaned_data.get("subject")
-            from_email = (settings.DEFAULT_FROM_EMAIL,)
-            message = request.POST.get("document.Body")
-
-            full_message = f"""
-                    Received message below from {email}, {subject}
-                    ________________________
-                    {message}
-                    """
-            msg = send_mail(
-                subject, full_message, email, ["myin1@students.kennesaw.edu"]
-            )
-            msg.attach_alternative(message, "application/pdf")
-            msg.send()
-            messages.success(request, "Email sent!")
-            return HttpResponseRedirect(request.path_info)
-
-    return render(
-        request,
-        "main_page/forms/balance_sheet.html",
-        {
+    
+    context = {
             "asset_entries": asset_entries,
             "liability_entries": liability_entries,
             "equity_entries": equity_entries,
@@ -1081,8 +1096,31 @@ def balance_sheet(request):
             "end_date": end_date,
             "journal_entries": journal_entries,
             "form": formSelection,
-        },
-    )
+        }
+    
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            template = get_template("main_page/forms/balance_Sheet.html")
+            html = template.render(context)
+            #body = json.loads(html)        
+            full_message = f"""
+                    Received message below from {email}, {subject}
+                    ________________________
+                    {context}
+                    """
+            msg = EmailMultiAlternatives(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+
+            msg.attach(html,"application/pdf" )
+            msg.send()
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
+
+    return render(request,"main_page/forms/balance_sheet.html",context)
 
 
 def retained_earnings(request):
@@ -1123,39 +1161,42 @@ def retained_earnings(request):
     # Calculate net income and retained earnings
     net_income = total_revenue - total_expenses
     retained_earnings = net_income - total_dividends
-    formSelection = ContactForm
-    if request.method == "POST":
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get("email")
-            subject = form.cleaned_data.get("subject")
-            body_unicode = request.body.decode("utf-8")
-            body = json.loads(body_unicode)
-            content = body["content"]
-            full_message = f"""
-                    Received message below from {email}, {subject}
-                    ________________________
-                    {content}
-                    """
-            msg = send_mail(
-                subject, full_message, email, ["myin1@students.kennesaw.edu"]
-            )
-            msg.attach_alternative(content, "application/pdf")
-            msg.send()
-            messages.success(request, "Email sent!")
-            return HttpResponseRedirect(request.path_info)
 
-    return render(
-        request,
-        "main_page/forms/retained_earnings.html",
-        {
+    formSelection = ContactForm
+
+    context = {
             "net_income": net_income,
             "total_dividends": total_dividends,
             "retained_earnings": retained_earnings,
             "start_date": start_date,
             "end_date": end_date,
             "form": formSelection,
-        },
+    }
+  
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            template = get_template("main_page/forms/retained_earnings.html")
+            html = template.render(context)
+            #body = json.loads(html)        
+            full_message = f"""
+                    Received message below from {email}, {subject}
+                    ________________________
+                    {context}
+                    """
+            msg = EmailMultiAlternatives(
+                subject, full_message, email, ["myin1@students.kennesaw.edu"]
+            )
+
+            msg.attach(html,"application/pdf" )
+            msg.send()
+            messages.success(request, "Email sent!")
+            return HttpResponseRedirect(request.path_info)
+    return render(
+        request,
+        "main_page/forms/retained_earnings.html", context
     )
 
 
