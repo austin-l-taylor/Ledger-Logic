@@ -698,18 +698,35 @@ def journal_entry_page(request):
 
 def add_journal_entry(request):
     if request.method == "POST":
-        # Extract data from form
         account1_name = request.POST.get("account1")
-        debit = Decimal(request.POST.get("debit1", 0))
+        debit_str = request.POST.get("debit1", 0)
         date1 = request.POST.get("date1")
         comments1 = request.POST.get("comments1")
         attachment1 = request.FILES.get("attachment1")
 
         account2_name = request.POST.get("account2")
-        credit = Decimal(request.POST.get("credit2", 0))
+        credit_str = request.POST.get("credit2", 0)
         date2 = request.POST.get("date2")
         comments2 = request.POST.get("comments2")
         attachment2 = request.FILES.get("attachment2")
+
+        # Check if debit and credit values were entered
+        if not debit_str or not credit_str:
+            messages.error(request, "Debit and credit values must be entered.")
+            return render(
+                request, "main_page/journal_entry/add_journal_entry_page.html"
+            )
+
+        # Convert debit and credit values to Decimal
+        debit = Decimal(debit_str)
+        credit = Decimal(credit_str)
+
+        # Check if debit and credit values are greater than 0
+        if debit <= 0 or credit <= 0:
+            messages.error(request, "Debit and credit values must be greater than 0.")
+            return render(
+                request, "main_page/journal_entry/add_journal_entry_page.html"
+            )
 
         # Check if debit and credit values match
         if debit != credit:
