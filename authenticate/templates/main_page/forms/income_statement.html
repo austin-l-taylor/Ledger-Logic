@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
+<div id="IncomeStatement" class="container mt-4">
     <h2 class="text-center">Income Statement</h2>
 
     <!-- Date or date range form -->
@@ -99,6 +99,8 @@
             </tbody>
         </table>
     </div>
+</div>
+<div>
     <button type="submit" class="btn btn-secondary" onclick="saveAsPDF()">Export to PDF</button>
     <button class="collapsible">Email Report</button>
     <div class="content">
@@ -109,7 +111,7 @@
 
     <script>
     function saveAsPDF(){
-        var element = document.body;
+        var element = document.getElementById("IncomeStatement");
         html2pdf()
             .from(element)
             .save();
