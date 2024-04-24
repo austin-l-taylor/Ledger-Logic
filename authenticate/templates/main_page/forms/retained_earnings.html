@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
+<div id="RetainedEarnings" class="container mt-4">
     <h2 class="text-center">Retained Earnings</h2>
 
     <!-- Date or date range form -->
@@ -53,9 +53,11 @@
         </form>
 </div>
 
+
+<div>    
     <script>
     function saveAsPDF(){
-        var element = document.body;
+        var element = document.getElementById("RetainedEarnings");
         html2pdf()
             .from(element)
             .save();
