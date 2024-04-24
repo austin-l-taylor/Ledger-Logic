@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 <div id="RetainedEarnings" class="container mt-4">
     <h2 class="text-center">Retained Earnings</h2>
 
@@ -45,7 +46,7 @@
         </tbody>
     </table>
     <!-- Export to PDF form -->
-    <button type="submit" class="btn btn-secondary" onclick="saveAsPDF()">Export to PDF</button>
+    <button class="btn btn-success" onclick="saveAsPDF()">Export to PDF</button>
     <button class="collapsible btn btn-success">Email Report</button>
     <div class="content">
         <form method="post">
