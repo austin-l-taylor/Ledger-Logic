@@ -48,48 +48,7 @@ from reportlab.lib.pagesizes import letter
 from io import BytesIO
 from xhtml2pdf import pisa
 
-
-def serialize_account(instance):
-    # Fetch related user instance
-    user = instance.user_id
-
-    # Convert DateTimeField to ISO format
-    date_time_account_added = (
-        instance.date_time_account_added.isoformat()
-        if instance.date_time_account_added
-        else None
-    )
-
-    # Construct a dictionary of fields to serialize
-    serialized_data = {
-        "account_name": instance.account_name,
-        "account_number": instance.account_number,
-        "account_description": instance.account_description,
-        "is_active": instance.is_active,
-        "normal_side": instance.normal_side,
-        "account_category": instance.account_category,
-        "account_subcategory": instance.account_subcategory,
-        "initial_balance": (
-            float(instance.initial_balance)
-            if instance.initial_balance is not None
-            else None
-        ),
-        "debit": float(instance.debit) if instance.debit is not None else None,
-        "credit": float(instance.credit) if instance.credit is not None else None,
-        "balance": float(instance.balance) if instance.balance is not None else None,
-        "date_time_account_added": date_time_account_added,
-        "user_id": {
-            "id": user.id,
-            "username": user.username,
-        },
-        "order": instance.order,
-        "statement": instance.statement,
-        "comment": instance.comment,
-    }
-
-    # Serialize data using Django's JSON encoder
-    serialized_json = json.dumps(serialized_data, cls=DjangoJSONEncoder)
-    return serialized_json
+# ---------------------------- Login Section  ----------------------------
 
 
 def login_user(request):
@@ -178,50 +137,6 @@ def logout_user(request):
     return redirect("login")
 
 
-def activate(request, uidb64, token):
-    User = get_user_model()
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except:
-        user = None
-    if user is not None and account_activation_token.check_token(user, token):
-        user.is_active = True
-        user.save()
-        mail_subject = "You are able to login now!"
-        mail_content = "Your account is now activated. You can login now. Thanks!"
-        from_email = "ledgerlogic.ksu@gmail.com"
-        to_email = user.email
-        message = EmailMultiAlternatives(
-            mail_subject, mail_content, from_email, [to_email]
-        )
-        message.send()
-        messages.success(request, "User account is now active.")
-        return redirect("home")
-    else:
-        messages.error(request, "Activation link is invalid!")
-    return redirect("authenticate/login.html")
-
-
-def activationEmail(request, user, username):
-    mail_subject = "A new user has registered to your site."
-    message = render_to_string(
-        "authenticate/activationAccount.html",
-        {
-            "user": username,
-            "useremail": user.email,
-            "domain": get_current_site(request).domain,
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "token": account_activation_token.make_token(user),
-            "protcol": "https" if request.is_secure() else "http",
-        },
-    )
-    email = EmailMultiAlternatives(
-        mail_subject, message, to=["jochoa2@students.kennesaw.edu"]
-    )
-    email.send()
-
-
 def register_user(request):
     """
     Handles user registration. If the request method is POST and the form is valid, it creates a new user and logs them in.
@@ -252,6 +167,37 @@ def register_user(request):
 
     context = {"form": form}
     return render(request, "authenticate/register.html", context)
+
+
+def activate(request, uidb64, token):
+    """
+    Activates a user account. If the user is found and the token is valid, it activates the user's account and sends a confirmation email.
+    """
+    # Check if the user is found and the token is valid
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except:
+        user = None
+    # Check if the user is not None and the token is valid
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        mail_subject = "You are able to login now!"
+        mail_content = "Your account is now activated. You can login now. Thanks!"
+        from_email = "ledgerlogic.ksu@gmail.com"
+        to_email = user.email
+        message = EmailMultiAlternatives(
+            mail_subject, mail_content, from_email, [to_email]
+        )
+        message.send()
+        messages.success(request, "User account is now active.")
+        return redirect("home")
+    # outputs an error message if the activation link is invalid
+    else:
+        messages.error(request, "Activation link is invalid!")
+    return redirect("authenticate/login.html")
 
 
 def forgot_password(request):
@@ -351,17 +297,28 @@ def reset_password(request):
     return render(request, "authenticate/reset_password.html", {})
 
 
+def is_staff_user(user):
+    """
+    Checks if the user is a staff member.
+    """
+    return user.is_staff
+
+
+# ---------------------------- Home Section ----------------------------
+
+
 def home(request):
     """
-    Renders the home page.
-
-    Parameters:
-    request (HttpRequest): The HTTP request object.
-
-    Returns:
-    HttpResponse: The HTTP response. Renders the home page.
+    Renders the home page with financial ratios.
     """
-    return render(request, "main_page/home.html", {})
+    # Fetch the pending journal entries
+    pending_entries = journal_entry_data(request)
+    ratios = calculate_ratios()  # Call the function to get the ratios
+    context = {
+        "ratios": ratios,
+        "pending_entries": pending_entries,
+    }
+    return render(request, "main_page/home.html", context)
 
 
 def help(request):
@@ -369,54 +326,7 @@ def help(request):
     return render(request, "main_page/help.html", {})
 
 
-def is_staff_user(user):
-    """
-    Checks if a user is a staff user.
-
-    Parameters:
-    user (User): The user to check.
-
-    Returns:
-    bool: True if the user is a staff user, False otherwise.
-    """
-    return user.is_staff
-
-
-@user_passes_test(is_staff_user)
-def send_email_view(request, user_id):
-    """
-    Handles the email sending process. If the request method is POST and the form is valid, it sends an email to the user with the provided user ID.
-
-    Parameters:
-    request (HttpRequest): The HTTP request object.
-    user_id (int): The ID of the user to send the email to.
-
-    Returns:
-    HttpResponse: The HTTP response. Renders the email form on GET requests or invalid POST requests. Redirects to the admin index page on successful email sending.
-    """
-    user = get_object_or_404(CustomUser, pk=user_id)
-    # Check if the request method is POST
-    if request.method == "POST":
-        form = EmailForm(request.POST)
-        # Check if the form is valid
-        if form.is_valid():
-            # Send an email to the user
-            subject = form.cleaned_data["subject"]
-            message = form.cleaned_data["message"]
-            send_mail(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [user.email],
-                fail_silently=False,
-            )
-            # Save the email notification
-            messages.success(request, "Email sent!")
-            return redirect("admin:index")
-    # If the request method is not POST
-    else:
-        form = EmailForm()
-    return render(request, "admin_custom/send_email.html", {"form": form, "user": user})
+# ---------------------------- Chart of Accounts Section  ----------------------------
 
 
 @login_required
@@ -424,6 +334,7 @@ def chart_of_accounts(request):
     """
     Renders the chart of accounts page but also checks if the user is an admin.
     """
+    # Check if the user is an admin from the models.py file
     query = request.GET.get("q")
     is_admin = request.user.is_superuser  # Determine if the user is an admin
     if is_admin:
@@ -495,6 +406,7 @@ def add_account(request):
     The only thing that you won't see in the table is the user_id field.
     This is because the user_id field is automatically set to the current user when the account is added below.
     """
+    # Check if the request method is POST then save the form
     if request.method == "POST":
         form = ChartOfAccountForm(request.POST)
         if form.is_valid():
@@ -516,8 +428,11 @@ def edit_account(request, account_id):
 
     This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
+
+    # grabs the account from the database
     account = get_object_or_404(ChartOfAccounts, id=account_id)
 
+    # Check if the request method is POST then save the form and log the changes
     if request.method == "POST":
         form = ChartOfAccountForm(request.POST, instance=account)
         if form.is_valid():
@@ -571,6 +486,7 @@ def deactivate_account(request, account_id):
 
     after_change = serialize("json", [account])
 
+    # Log the change in the CoAEventLog table in the database
     CoAEventLog.objects.create(
         user=request.user,
         action="deactivated",
@@ -590,6 +506,8 @@ def activate_account(request, account_id):
 
     This one is also handling the JSON serialization of the before and after changes. Which can be viewed in the view_coa_logs.html page.
     """
+
+    # grabs the account from the database
     account = get_object_or_404(ChartOfAccounts, id=account_id)
     before_change = serialize("json", [account])
 
@@ -598,6 +516,7 @@ def activate_account(request, account_id):
 
     after_change = serialize("json", [account])
 
+    # Log the change in the CoAEventLog table in the database
     CoAEventLog.objects.create(
         user=request.user,
         action="activated",
@@ -663,6 +582,10 @@ def format_change_data(data):
 
 
 def journal_entry_page(request):
+    """
+    Definition that handles the journal entry page.
+    """
+    # Fetch all journal entries
     if request.method == "POST":
         if "approve" in request.POST:
             group_id = request.POST.get("group_id")
@@ -675,6 +598,7 @@ def journal_entry_page(request):
                 account = entry.account
                 account.save()
 
+        # Reject the journal entry
         elif "reject" in request.POST:
             group_id = request.POST.get("group_id")
             print(group_id)
@@ -686,6 +610,7 @@ def journal_entry_page(request):
 
         return redirect("journal_entry_page")
 
+    # Fetch all journal entries
     else:
         journal_entries = JournalEntry.objects.all()
         is_admin = request.user.is_staff
@@ -696,7 +621,29 @@ def journal_entry_page(request):
         )
 
 
+# ---------------------------- Journal Entry Section ----------------------------
+
+
 def add_journal_entry(request):
+    """
+    Handles the creation of a journal entry in the database.
+
+    This function is called when a POST request is made to the corresponding URL. It extracts the account names, debit and credit values, dates, comments, and attachments from the request.
+
+    It then performs several checks:
+    - It checks if the debit and credit values were entered. If not, it returns an error message and re-renders the form page.
+    - It checks if the debit and credit values are greater than 0. If not, it returns an error message and re-renders the form page.
+    - It checks if the debit and credit values match. If not, it returns an error message and re-renders the form page.
+    - It checks if the accounts exist in the Chart of Accounts. If not, it returns an error message and re-renders the form page.
+    - It checks if account1 is a normal side left account and if account2 is a normal side right account. If not, it returns an error message and re-renders the form page.
+
+    If all checks pass, it creates a JournalEntryGroup and two JournalEntries, one for each account. The JournalEntries are linked to the JournalEntryGroup and have a status of "Pending".
+
+    Finally, it sends an email with the details of the journal entry and redirects to the journal entry page.
+
+    If the request method is not POST, it simply renders the form page.
+    """
+    # Check if the request method is POST then save the form and log the changes in the CoAEventLog table
     if request.method == "POST":
         account1_name = request.POST.get("account1")
         debit_str = request.POST.get("debit1", 0)
@@ -803,53 +750,25 @@ def add_comment(request, group_id):
     try:
         entry = JournalEntry.objects.get(id=group_id)
     except JournalEntry.DoesNotExist:
-        # Handle the error. For example, you could return early:
-        return
-    # Rest of the function...
+        messages.error(request, "Journal Entry does not exist.")
+        return redirect("journal_entry_page")
 
 
-def journalEntryEmail(
-    request,
-    account1Name,
-    acct1debit,
-    account1,
-    account2Name,
-    acct2credit,
-    account2,
-):
-    mail_subject = "A new journal entry has been posted to your site."
-    message = render_to_string(
-        "main_page/journal_entry/journalEntryEmail.html",
-        {
-            "account1Name": account1Name,
-            "account1Debit": acct1debit,
-            "account1": account1,
-            "account2Name": account2Name,
-            "account2Credit": acct2credit,
-            "account2": account2,
-            "domain": get_current_site(request).domain,
-        },
-    )
-    email = EmailMultiAlternatives(
-        mail_subject, message, to=["myin1@students.kennesaw.edu"]
-    )
-    email.send()
-
-
-def entry_details(request, entry_id):
-    """
-    View function to display details of a specific journal entry.
-    """
-    journal_entry = get_object_or_404(JournalEntry, id=entry_id)
-    is_admin = request.user.is_staff
-    return render(
-        request,
-        "main_page/ledger/entry_details.html",
-        {"journal_entry": journal_entry, "is_admin": is_admin},
-    )
+# ---------------------------- Ledger Section ----------------------------
 
 
 def ledger(request, account_id):
+    """
+    Handles the display of a ledger for a specific account.
+
+    This function is called when a GET request is made to the corresponding URL with an account_id parameter. It retrieves the account with the given ID from the Chart of Accounts. If no such account exists, it returns a 404 error.
+
+    It then retrieves all journal entries for the account, ordered by date.
+
+    It calculates the balance for each journal entry by adding the debit amount and subtracting the credit amount from the current balance. The initial balance is the account's initial balance.
+
+    Finally, it renders the ledger page with the journal entries and the account as context variables.
+    """
     account = get_object_or_404(ChartOfAccounts, id=account_id)
 
     # Filter journal entries by account and order by date
@@ -870,33 +789,35 @@ def ledger(request, account_id):
     )
 
 
-def email(request, email, subject, message):
-    if request.method == "POST":
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get("email")
-            subject = form.cleaned_data.get("subject")
-            message = form.cleaned_data.get("message")
+def entry_details(request, entry_id):
+    """
+    View function to display details of a specific journal entry.
+    """
+    journal_entry = get_object_or_404(JournalEntry, id=entry_id)
+    is_admin = request.user.is_staff
+    return render(
+        request,
+        "main_page/ledger/entry_details.html",
+        {"journal_entry": journal_entry, "is_admin": is_admin},
+    )
 
-            full_message = f"""
-                Received message below from {email}, {subject}
-                ________________________
 
-
-                {message}
-                """
-            send_mail(
-                subject="Received contact form submission",
-                message=full_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["myin1@students.kennesaw.edu"],
-            )
-    return render(request, "main_page/contact.html", {"form": form})
+# ---------------------------- Forms Section ----------------------------
 
 
 def trial_balance(request):
     """
-    Definition that handles the trial balance page.
+    Handles the trial balance page.
+
+    This function is called when a GET or POST request is made to the corresponding URL.
+
+    For a GET request, it retrieves the start_date and end_date parameters from the request. It then retrieves all journal entries that fall within the specified date range, or all journal entries if no date range is specified.
+
+    It groups the journal entries by account and calculates the total debit and credit for each account. It also calculates the total debit and credit for all accounts.
+
+    It then renders the trial balance page with the accounts, total debit, total credit, and a contact form as context variables.
+
+    For a POST request, it validates the contact form and sends an email with the trial balance data if the form is valid. It then redirects to the trial balance page.
     """
     formSelection = ContactForm
     start_date = request.GET.get("start_date")
@@ -923,10 +844,10 @@ def trial_balance(request):
     total_credit = sum(account["total_credit"] for account in accounts)
 
     context = {
-            "accounts": accounts,
-            "total_debit": total_debit,
-            "total_credit": total_credit,
-            "form": formSelection,
+        "accounts": accounts,
+        "total_debit": total_debit,
+        "total_credit": total_credit,
+        "form": formSelection,
     }
     if request.method == "POST":
         form = ContactForm(request.POST)
@@ -935,7 +856,7 @@ def trial_balance(request):
             subject = form.cleaned_data.get("subject")
             template = get_template("main_page/forms/trial_balance.html")
             html = template.render(context)
-            #body = json.loads(html)        
+            # body = json.loads(html)
             full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
@@ -945,7 +866,7 @@ def trial_balance(request):
                 subject, full_message, email, ["myin1@students.kennesaw.edu"]
             )
 
-            msg.attach(html,"application/pdf" )
+            msg.attach(html, "application/pdf")
             msg.send()
             messages.success(request, "Email sent!")
             return HttpResponseRedirect(request.path_info)
@@ -955,8 +876,25 @@ def trial_balance(request):
 
 def income_statement(request):
     """
-    View for the Income Statement page.
+    Handles the Income Statement page.
+
+    This function is called when a GET or POST request is made to the corresponding URL.
+
+    For a GET request, it retrieves the start_date and end_date parameters from the request. It then retrieves all journal entries that fall within the specified date range, or all journal entries if no date range is specified.
+
+    It groups the journal entries by account and calculates the total debit and credit for each account. It then filters the accounts into revenue and expense accounts based on predefined account names.
+
+    It calculates the total revenue, total expenses, and net income, and renders the income statement page with these values, the revenue and expense accounts, the start and end dates, and a contact form as context variables.
+
+    For a POST request, it validates the contact form and sends an email with the income statement data if the form is valid. It then redirects to the income statement page.
+
+    Parameters:
+        request (HttpRequest): The HTTP request sent to the server.
+
+    Returns:
+        HttpResponse: The HTTP response to send to the client.
     """
+    # Define the form to use based on the user's role (admin or user)
     formSelection = ContactForm
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
@@ -1007,14 +945,14 @@ def income_statement(request):
     net_income = total_revenue - total_expenses
 
     context = {
-            "revenue_accounts": revenue_accounts,
-            "expense_accounts": expense_accounts,
-            "total_revenue": total_revenue,
-            "total_expenses": total_expenses,
-            "net_income": net_income,
-            "start_date": start_date,
-            "end_date": end_date,
-            "form": formSelection,
+        "revenue_accounts": revenue_accounts,
+        "expense_accounts": expense_accounts,
+        "total_revenue": total_revenue,
+        "total_expenses": total_expenses,
+        "net_income": net_income,
+        "start_date": start_date,
+        "end_date": end_date,
+        "form": formSelection,
     }
 
     if request.method == "POST":
@@ -1024,7 +962,7 @@ def income_statement(request):
             subject = form.cleaned_data.get("subject")
             template = get_template("main_page/forms/income_statement.html")
             html = template.render(context)
-            #body = json.loads(html)        
+            # body = json.loads(html)
             full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
@@ -1034,21 +972,33 @@ def income_statement(request):
                 subject, full_message, email, ["myin1@students.kennesaw.edu"]
             )
 
-            msg.attach(html,"application/pdf" )
+            msg.attach(html, "application/pdf")
             msg.send()
             messages.success(request, "Email sent!")
             return HttpResponseRedirect(request.path_info)
-    return render(request,"main_page/forms/income_statement.html", context)
+    return render(request, "main_page/forms/income_statement.html", context)
 
 
 def balance_sheet(request):
     """
-    View for the balance sheet page.
+    Handles the Balance Sheet page.
+
+    This function is called when a GET or POST request is made to the corresponding URL.
+
+    For a GET request, it retrieves the start_date and end_date parameters from the request. It then retrieves all journal entries that fall within the specified date range, or all journal entries if no date range is specified.
+
+    It groups the journal entries by account and calculates the total debit and credit for each account. It then filters the accounts into assets, liabilities, and equity accounts based on predefined account categories.
+
+    It calculates the total assets, total liabilities, total equity, and total liabilities and equity, and renders the balance sheet page with these values, the asset, liability, and equity accounts, the start and end dates, and a contact form as context variables.
+
+    For a POST request, it validates the contact form and sends an email with the balance sheet data if the form is valid. It then redirects to the balance sheet page.
     """
+    # Define the form to use based on the user's role (admin or user)
     formSelection = ContactForm
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
+    # Filter journal entries based on start and end dates if provided or get all journal entries if not provided
     if start_date and end_date:
         journal_entries = JournalEntry.objects.filter(
             Q(date__gte=start_date) & Q(date__lte=end_date)
@@ -1083,21 +1033,23 @@ def balance_sheet(request):
 
     # Total Liabilities and Stockholders' Equity
     total_liabilities_and_equity = total_liabilities + total_equity
-    
+
+    # Define context for the template to render the balance sheet page with the data calculated above
     context = {
-            "asset_entries": asset_entries,
-            "liability_entries": liability_entries,
-            "equity_entries": equity_entries,
-            "total_assets": total_assets,
-            "total_liabilities": total_liabilities,
-            "total_equity": total_equity,
-            "total_liabilities_and_equity": total_liabilities_and_equity,
-            "start_date": start_date,
-            "end_date": end_date,
-            "journal_entries": journal_entries,
-            "form": formSelection,
-        }
-    
+        "asset_entries": asset_entries,
+        "liability_entries": liability_entries,
+        "equity_entries": equity_entries,
+        "total_assets": total_assets,
+        "total_liabilities": total_liabilities,
+        "total_equity": total_equity,
+        "total_liabilities_and_equity": total_liabilities_and_equity,
+        "start_date": start_date,
+        "end_date": end_date,
+        "journal_entries": journal_entries,
+        "form": formSelection,
+    }
+
+    # Handle POST request to send email with balance sheet data if form is valid and redirect to balance sheet page after sending email successfully
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -1105,7 +1057,7 @@ def balance_sheet(request):
             subject = form.cleaned_data.get("subject")
             template = get_template("main_page/forms/balance_Sheet.html")
             html = template.render(context)
-            #body = json.loads(html)        
+            # body = json.loads(html)
             full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
@@ -1115,18 +1067,36 @@ def balance_sheet(request):
                 subject, full_message, email, ["myin1@students.kennesaw.edu"]
             )
 
-            msg.attach(html,"application/pdf" )
+            msg.attach(html, "application/pdf")
             msg.send()
             messages.success(request, "Email sent!")
             return HttpResponseRedirect(request.path_info)
 
-    return render(request,"main_page/forms/balance_sheet.html",context)
+    return render(request, "main_page/forms/balance_sheet.html", context)
 
 
 def retained_earnings(request):
     """
-    Definition that handles the retained earnings page.
+    Handles the Retained Earnings page.
+
+    This function is called when a GET or POST request is made to the corresponding URL.
+
+    For a GET request, it retrieves the start_date and end_date parameters from the request. It then retrieves all journal entries that fall within the specified date range, or all journal entries if no date range is specified.
+
+    It filters the journal entries into revenue, expense, and dividends entries based on predefined account names.
+
+    It calculates the total revenue, total expenses, total dividends, net income, and retained earnings, and renders the retained earnings page with these values, the start and end dates, and a contact form as context variables.
+
+    For a POST request, it validates the contact form and sends an email with the retained earnings data if the form is valid. It then redirects to the retained earnings page.
+
+    Parameters:
+        request (HttpRequest): The HTTP request sent to the server.
+
+    Returns:
+        HttpResponse: The HTTP response to send to the client.
     """
+
+    # Define the form to use based on the user's role (admin or user)
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
@@ -1165,14 +1135,14 @@ def retained_earnings(request):
     formSelection = ContactForm
 
     context = {
-            "net_income": net_income,
-            "total_dividends": total_dividends,
-            "retained_earnings": retained_earnings,
-            "start_date": start_date,
-            "end_date": end_date,
-            "form": formSelection,
+        "net_income": net_income,
+        "total_dividends": total_dividends,
+        "retained_earnings": retained_earnings,
+        "start_date": start_date,
+        "end_date": end_date,
+        "form": formSelection,
     }
-  
+
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -1180,7 +1150,7 @@ def retained_earnings(request):
             subject = form.cleaned_data.get("subject")
             template = get_template("main_page/forms/retained_earnings.html")
             html = template.render(context)
-            #body = json.loads(html)        
+            # body = json.loads(html)
             full_message = f"""
                     Received message below from {email}, {subject}
                     ________________________
@@ -1190,17 +1160,35 @@ def retained_earnings(request):
                 subject, full_message, email, ["myin1@students.kennesaw.edu"]
             )
 
-            msg.attach(html,"application/pdf" )
+            msg.attach(html, "application/pdf")
             msg.send()
             messages.success(request, "Email sent!")
             return HttpResponseRedirect(request.path_info)
-    return render(
-        request,
-        "main_page/forms/retained_earnings.html", context
-    )
+    return render(request, "main_page/forms/retained_earnings.html", context)
 
 
 def export_to_pdf(request):
+    """
+    Handles the export of data to a PDF file.
+
+    This function is called when a GET request is made to the corresponding URL.
+
+    It retrieves the start_date and end_date parameters from the request and loads the PDF template.
+
+    It defines the context for the template with the start_date and end_date, and renders the template with this context.
+
+    It creates a BytesIO object and generates the PDF using the pisa library. If there is an error during this process, it returns a HTTP response with a status of 500 and an error message.
+
+    If the PDF is generated successfully, it returns the PDF as a file response with the filename "report.pdf".
+
+    Parameters:
+        request (HttpRequest): The HTTP request sent to the server.
+
+    Returns:
+        FileResponse: The PDF file to send to the client.
+        HttpResponse: An error message if there was an error generating the PDF.
+    """
+
     print("export_to_pdf view was called")  # This will print to the console
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
@@ -1228,9 +1216,21 @@ def export_to_pdf(request):
         return HttpResponse("Error generating PDF", status=500)
 
 
+# ---------------------------- Home Page Data Analytics  ----------------------------
+
+
 def calculate_ratios():
     """
-    Calculate various financial ratios based on Chart of Accounts data.
+    Calculates various financial ratios based on Chart of Accounts data.
+
+    This function retrieves all accounts from the Chart of Accounts and initializes variables for ratio calculations. It assigns values to these variables based on the account name or category.
+
+    It then calculates various financial ratios, including liquidity ratios, leverage financial ratios, efficiency ratios, and profitability ratios. Each ratio is rounded to two decimal places and assigned a color based on its value.
+
+    The function returns a dictionary with the calculated ratios. Each key in the dictionary is the name of a ratio, and each value is another dictionary with the value of the ratio and its color.
+
+    Returns:
+        dict: A dictionary with the calculated ratios. Each key is the name of a ratio, and each value is another dictionary with the value of the ratio and its color.
     """
 
     # Color variables for the ratios
@@ -1474,6 +1474,15 @@ def calculate_ratios():
 
 
 def journal_entry_data(request):
+    """
+    Retrieves and returns all pending journal entries.
+
+    This function is called when a GET request is made to the corresponding URL.
+
+    It retrieves all JournalEntry objects from the database that have a status of "Pending". It then prints these entries to the console for debugging purposes.
+
+    Finally, it returns the QuerySet of pending entries. This function is typically used as a helper function in other views to get the data needed for rendering templates.
+    """
     # Retrieve pending journal entries
     pending_entries = JournalEntry.objects.filter(status="Pending")
     print(pending_entries)
@@ -1481,20 +1490,166 @@ def journal_entry_data(request):
     return pending_entries
 
 
-def home(request):
+# ---------------------------- Email Functionality ----------------------------
+
+
+def activationEmail(request, user, username):
     """
-    Renders the home page with financial ratios.
+    Sends an account activation email to a newly registered user.
+
+    This function is called after a new user registers to the site. It generates an account activation token and constructs an activation link with the user's ID and the token.
+
+    It then creates an email with a subject and a message. The message is rendered from the "authenticate/activationAccount.html" template with the username, user email, domain, user ID, token, and protocol as context variables.
+
+    Finally, it sends the email to the specified address.
     """
-    pending_entries = journal_entry_data(request)
-    ratios = calculate_ratios()  # Call the function to get the ratios
-    context = {
-        "ratios": ratios,
-        "pending_entries": pending_entries,
-    }
-    return render(request, "main_page/home.html", context)
+    # Generate an account activation token and construct the activation link
+    mail_subject = "A new user has registered to your site."
+    message = render_to_string(
+        "authenticate/activationAccount.html",
+        {
+            "user": username,
+            "useremail": user.email,
+            "domain": get_current_site(request).domain,
+            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+            "token": account_activation_token.make_token(user),
+            "protcol": "https" if request.is_secure() else "http",
+        },
+    )
+    # Construct the email message and send it to the specified address using the EmailMultiAlternatives class
+    email = EmailMultiAlternatives(
+        mail_subject, message, to=["jochoa2@students.kennesaw.edu"]
+    )
+    email.send()
+
+
+def email(request, email, subject, message):
+    """
+    Handles the sending of an email from the contact form.
+
+    This function is called when a POST request is made to the corresponding URL. It validates the contact form and retrieves the email, subject, and message from the form data.
+
+    It then constructs a full message with the email, subject, and message, and sends an email with this message to a specified recipient.
+
+    Finally, it renders the contact page with the form as a context variable.
+    """
+    # Check if the request method is POST and validate the contact form data to send an email
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            subject = form.cleaned_data.get("subject")
+            message = form.cleaned_data.get("message")
+
+            full_message = f"""
+                Received message below from {email}, {subject}
+                ________________________
+
+
+                {message}
+                """
+            send_mail(
+                subject="Received contact form submission",
+                message=full_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=["myin1@students.kennesaw.edu"],
+            )
+    return render(request, "main_page/contact.html", {"form": form})
+
+
+@user_passes_test(is_staff_user)
+def send_email_view(request, user_id):
+    """
+    Handles the email sending process. If the request method is POST and the form is valid, it sends an email to the user with the provided user ID.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+    user_id (int): The ID of the user to send the email to.
+
+    Returns:
+    HttpResponse: The HTTP response. Renders the email form on GET requests or invalid POST requests. Redirects to the admin index page on successful email sending.
+    """
+    user = get_object_or_404(CustomUser, pk=user_id)
+    # Check if the request method is POST
+    if request.method == "POST":
+        form = EmailForm(request.POST)
+        # Check if the form is valid
+        if form.is_valid():
+            # Send an email to the user
+            subject = form.cleaned_data["subject"]
+            message = form.cleaned_data["message"]
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
+            # Save the email notification
+            messages.success(request, "Email sent!")
+            return redirect("admin:index")
+    # If the request method is not POST
+    else:
+        form = EmailForm()
+    return render(request, "admin_custom/send_email.html", {"form": form, "user": user})
+
+
+def journalEntryEmail(
+    request,
+    account1Name,
+    acct1debit,
+    account1,
+    account2Name,
+    acct2credit,
+    account2,
+):
+    """
+    Sends an email notification when a new journal entry is posted.
+
+    This function is called when a new journal entry is created. It constructs a subject and a message for the email. The message is rendered from the "main_page/journal_entry/journalEntryEmail.html" template with the account names, debit and credit amounts, accounts, and domain as context variables.
+
+    It then creates an email with the subject and message, and sends the email to a specified recipient.
+    """
+    # Construct the email subject and message using the render_to_string function
+    mail_subject = "A new journal entry has been posted to your site."
+    message = render_to_string(
+        "main_page/journal_entry/journalEntryEmail.html",
+        {
+            "account1Name": account1Name,
+            "account1Debit": acct1debit,
+            "account1": account1,
+            "account2Name": account2Name,
+            "account2Credit": acct2credit,
+            "account2": account2,
+            "domain": get_current_site(request).domain,
+        },
+    )
+    # Create an email message using the EmailMultiAlternatives class and send it to the specified address
+    email = EmailMultiAlternatives(
+        mail_subject, message, to=["myin1@students.kennesaw.edu"]
+    )
+    email.send()
 
 
 def email_report(request):
+    """
+    Handles the sending of an email report.
+
+    This function is called when a POST request is made to the corresponding URL. It validates the contact form and retrieves the email, subject, and message from the form data.
+
+    It then constructs a full message with the email, subject, and message, and creates an email with this message. The email is sent to a specified recipient.
+
+    The function also attaches a PDF document to the email. The content of the PDF is retrieved from the "document.Body" field of the POST data.
+
+    Finally, it returns a HTTP response indicating that the email was sent successfully.
+
+    Parameters:
+        request (HttpRequest): The HTTP request sent to the server.
+
+    Returns:
+        HttpResponse: A HTTP response indicating that the email was sent successfully.
+    """
+    # Check if the request method is POST and validate the contact form data to send an email
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -1514,3 +1669,62 @@ def email_report(request):
             msg.attach_alternative("document.pdf", message, "application/pdf")
             msg.send()
     return HttpResponse("Email sent successfully!")
+
+
+# ---------------------------- Account Serialization ----------------------------
+
+
+def serialize_account(instance):
+    """
+    Serializes an account instance into JSON format.
+
+    This function takes an account instance as input and constructs a dictionary with the account's fields. It converts the DateTimeField to ISO format and the DecimalFields to float. It also fetches the related user instance and includes the user's ID and username in the serialized data.
+
+    Finally, it serializes the dictionary into JSON format using Django's JSON encoder and returns the serialized JSON.
+
+    Parameters:
+        instance (Account): The account instance to serialize.
+
+    Returns:
+        str: The serialized account data in JSON format.
+    """
+    # Fetch related user instance
+    user = instance.user_id
+
+    # Convert DateTimeField to ISO format
+    date_time_account_added = (
+        instance.date_time_account_added.isoformat()
+        if instance.date_time_account_added
+        else None
+    )
+
+    # Construct a dictionary of fields to serialize
+    serialized_data = {
+        "account_name": instance.account_name,
+        "account_number": instance.account_number,
+        "account_description": instance.account_description,
+        "is_active": instance.is_active,
+        "normal_side": instance.normal_side,
+        "account_category": instance.account_category,
+        "account_subcategory": instance.account_subcategory,
+        "initial_balance": (
+            float(instance.initial_balance)
+            if instance.initial_balance is not None
+            else None
+        ),
+        "debit": float(instance.debit) if instance.debit is not None else None,
+        "credit": float(instance.credit) if instance.credit is not None else None,
+        "balance": float(instance.balance) if instance.balance is not None else None,
+        "date_time_account_added": date_time_account_added,
+        "user_id": {
+            "id": user.id,
+            "username": user.username,
+        },
+        "order": instance.order,
+        "statement": instance.statement,
+        "comment": instance.comment,
+    }
+
+    # Serialize data using Django's JSON encoder
+    serialized_json = json.dumps(serialized_data, cls=DjangoJSONEncoder)
+    return serialized_json

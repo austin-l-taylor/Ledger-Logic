@@ -260,6 +260,10 @@ class JournalEntry(models.Model):
         return self.account.account_name
 
     def approve(self):
+        """
+        this method is used to approve a journal entry
+        and update the account balance in ChartOfAccounts and create a corresponding entry in GeneralLedger
+        """
         if self.status == "Pending":
             with transaction.atomic():
                 self.status = "Approved"
